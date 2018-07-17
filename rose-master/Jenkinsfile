@@ -11,7 +11,9 @@ node {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
 
-        app = docker.build("rose/master-centos7")
+        dir('rose-master') {
+            app = docker.build("rose/master-centos7")
+        }
     }
 
     stage('Test image') {
