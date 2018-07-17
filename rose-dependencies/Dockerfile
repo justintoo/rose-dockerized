@@ -1,5 +1,4 @@
-#FROM centos:centos7
-FROM openshift/jenkins-2-centos7
+FROM centos:centos7
 MAINTAINER Justin Too <too1@llnl.gov>
 
 #--------------------------------------------------------------------------
@@ -63,27 +62,4 @@ RUN source /root/opt/automake/1.14/autoconf/2.69/setup.sh && \
     mkdir -p ~/opt/libtool && \
     cd ~/opt/libtool && \
     curl -s https://gist.githubusercontent.com/rosecompiler/f13bf9725f9ac99f6639/raw/2e759064a70d6a136509339bf279929910da9277/install-libtool.sh | bash /dev/stdin 2.4
-
-#----------------------------------------------------------
-# ROSE
-#----------------------------------------------------------
-COPY create-rose-workspace.sh .
-RUN chmod +x ./create-rose-workspace.sh
-RUN ./create-rose-workspace.sh master
-
-COPY bootstrap-rose.sh .
-RUN chmod +x ./bootstrap-rose.sh
-RUN ./bootstrap-rose.sh master
-
-COPY bootstrap-rose.sh .
-RUN chmod +x ./bootstrap-rose.sh
-RUN ./bootstrap-rose.sh master
-
-COPY configure-rose.sh .
-RUN chmod +x ./configure-rose.sh
-RUN ./configure-rose.sh master
-
-COPY install-rose.sh .
-RUN chmod +x ./install-rose.sh
-RUN ./install-rose.sh master
 
