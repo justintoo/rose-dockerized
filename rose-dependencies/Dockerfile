@@ -29,9 +29,9 @@ RUN yum upgrade -y &&               \
 #----------------------------------------------------------
 # Boost
 #----------------------------------------------------------
-RUN mkdir -p ~/opt/boost && \
-    cd ~/opt/boost && \
-    curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/4235600552d5efdb3f1c72cc6a758fef2a733401/install-boost.sh | bash /dev/stdin 1.66.0
+#RUN mkdir -p ~/opt/boost && \
+#    cd ~/opt/boost && \
+#    curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/4235600552d5efdb3f1c72cc6a758fef2a733401/install-boost.sh | bash /dev/stdin 1.66.0
 
 #----------------------------------------------------------
 # Bison
