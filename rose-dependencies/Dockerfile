@@ -69,4 +69,5 @@ RUN source /root/opt/automake/1.14/autoconf/2.69/setup.sh && \
 # Remove build workspace, only keep the final installations
 #----------------------------------------------------------
 RUN cd ~/opt/ && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \;
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+
