@@ -4,7 +4,7 @@
 : ${ROSE_VERSION:=master}
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 
-# Parallel build on mac dies with gcc segfault
+# TODO: Parallel build on mac dies with gcc segfault
 PARALLELISM=1
 
 cd "~/rose/${ROSE_VERSION}"
@@ -31,3 +31,8 @@ cat <<-EOF
 [SUCCESS} Note: This command was added to your ~/.bash_profile.
 -------------------------------------------------------------------------------
 EOF
+
+# Cleanup build workspace to reduce bloat
+rm -rf "${ROSE_BUILD}"
+rm -rf "${ROSE_SOURCE}"
+
