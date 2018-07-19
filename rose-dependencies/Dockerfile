@@ -31,10 +31,10 @@ RUN yum upgrade -y &&               \
     yum install -y                  \
         vim                         \
         emacs &&                    \
-    yum -y --enablerepo='*' clean all && \
-        rm -f /core* && \
-        rm -rf /tmp/* && \
-        dd if=/dev/zero of=/EMPTY bs=1M && \
+    yum -y --enablerepo='*' clean all &&    \
+        rm -f /core* &&                     \
+        rm -rf /tmp/* &&                    \
+        dd if=/dev/zero of=/EMPTY bs=1M &&  \
         rm -f /EMPTY
 
 #----------------------------------------------------------
