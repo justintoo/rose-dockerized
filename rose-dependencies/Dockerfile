@@ -64,3 +64,9 @@ RUN source /root/opt/automake/1.14/autoconf/2.69/setup.sh && \
     cd ~/opt/libtool && \
     curl -s https://gist.githubusercontent.com/rosecompiler/f13bf9725f9ac99f6639/raw/2e759064a70d6a136509339bf279929910da9277/install-libtool.sh | bash /dev/stdin 2.4
 
+
+#----------------------------------------------------------
+# Remove build workspace, only keep the final installations
+#----------------------------------------------------------
+RUN cd ~/opt/ && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \;
