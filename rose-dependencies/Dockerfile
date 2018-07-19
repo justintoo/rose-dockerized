@@ -30,13 +30,15 @@ RUN yum upgrade -y &&               \
         ghostscript &&              \
     yum install -y                  \
         vim                         \
-        emacs &&                    \
-    yum -y --enablerepo='*' clean all &&    \
-        rm -rf /var/cache/yum &&            \
-        rm -f /core* &&                     \
-        rm -rf /tmp/* &&                    \
-        dd if=/dev/zero of=/EMPTY bs=1M &&  \
-        rm -f /EMPTY
+        emacs
+
+# TODO: Cleanup
+#    yum -y --enablerepo='*' clean all &&    \
+#        rm -rf /var/cache/yum &&            \
+#        rm -f /core* &&                     \
+#        rm -rf /tmp/* &&                    \
+#        dd if=/dev/zero of=/EMPTY bs=1M &&  \
+#        rm -f /EMPTY
 
 #----------------------------------------------------------
 # Boost
