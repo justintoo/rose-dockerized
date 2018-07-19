@@ -32,6 +32,7 @@ RUN yum upgrade -y &&               \
         vim                         \
         emacs &&                    \
     yum -y --enablerepo='*' clean all &&    \
+        rm -rf /var/cache/yum &&            \
         rm -f /core* &&                     \
         rm -rf /tmp/* &&                    \
         dd if=/dev/zero of=/EMPTY bs=1M &&  \
