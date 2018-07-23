@@ -5,7 +5,7 @@
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 
 # TODO: Parallel build on mac dies with gcc segfault
-PARALLELISM=1
+# PARALLELISM=1
 
 cd "~/rose/${ROSE_VERSION}"
 source setup.sh
