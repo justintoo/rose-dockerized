@@ -1,4 +1,4 @@
-FROM rose-dependencies/centos7-latest
+FROM rosecompiler/rose-dependencies:centos7-latest
 MAINTAINER Justin Too <too1@llnl.gov>
 
 #----------------------------------------------------------
