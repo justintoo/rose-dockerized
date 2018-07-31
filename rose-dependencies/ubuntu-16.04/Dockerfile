@@ -19,7 +19,9 @@ USER root
 # Install system dependencies, then remove unneeded bloat
 #----------------------------------------------------------
 RUN apt-get update -y && \
-        apt-get install -y vim emacs git wget g++-4.8 python curl make automake libtool flex bison ghostscript graphviz unzip environment-modules && \
+        apt-get install -y \
+            vim emacs git wget g++-4.8 python curl make automake \
+            libtool flex bison ghostscript graphviz unzip environment-modules  && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 && \
         update-alternatives --install /usr/bin/cpp cpp-bin /usr/bin/cpp-4.8 100 && \
@@ -42,4 +44,5 @@ RUN mkdir -p ~/opt/ && \
     ./spack/bin/spack compiler add && \
     ./spack/bin/spack install environment-modules && \
     ./spack/bin/spack --verbose --insecure install -j1 --no-checksum --only dependencies rose %gcc@4.8
+
 
