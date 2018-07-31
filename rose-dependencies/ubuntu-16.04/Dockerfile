@@ -42,7 +42,5 @@ RUN mkdir -p ~/opt/ && \
     cd ~/opt/ && \
     git clone --branch SYSADMIN-240-update-to-rose-0.9.9.0 https://github.com/justintoo/spack && \
     ./spack/bin/spack compiler add && \
-    ./spack/bin/spack install environment-modules && \
-    ./spack/bin/spack --verbose --insecure install -j1 --no-checksum --only dependencies rose %gcc@4.8
-
+    ./spack/bin/spack --verbose --insecure install --no-checksum --only dependencies rose %gcc@4.8
 
