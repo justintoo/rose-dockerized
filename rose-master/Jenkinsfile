@@ -18,7 +18,7 @@ node {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
 
-        dir('rose-dependencies') {
+        dir('rose-master') {
             rose = docker.build("rosecompiler/rose", "--no-cache .")
         }
     }
