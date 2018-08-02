@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Justin Too <too1@llnl.gov>
 
 #--------------------------------------------------------------------------
@@ -21,6 +21,10 @@ ARG SPACK_INSTALL_ARGS="--no-checksum"
 ENV SPACK_DESTDIR="/usr/local"
 ENV SPACK_HOME="${SPACK_DESTDIR}/spack"
 ENV PATH="${SPACK_HOME}/bin:${PATH}"
+
+# Installing tzdata hangs on interactive promot
+# https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
+ENV DEBIAN_FRONTEND=noninteractive
 
 #----------------------------------------------------------
 # Install system dependencies, then remove unneeded bloat
@@ -46,9 +50,6 @@ RUN apt-get update -y && \
 RUN cd "${SPACK_DESTDIR}" && \
     git clone --branch SYSADMIN-240-update-to-rose-0.9.9.0 https://github.com/justintoo/spack && \
     echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
-    echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
-    echo '/etc/profile.d/modules.sh' >> ~/.bashrc && \
-    echo 'spack load rose' >> ~/.bashrc && \
     spack compiler add
 
 #----------------------------------------------------------
