@@ -19,7 +19,7 @@ node {
          * docker build on the command line */
 
         dir('rose-dependencies') {
-            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache .")
+            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache ubuntu-16.04")
         }
     }
 

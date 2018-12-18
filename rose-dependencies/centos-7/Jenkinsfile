@@ -19,7 +19,7 @@ node {
          * docker build on the command line */
 
         dir('rose-dependencies') {
-            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache .")
+            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache centos-7")
         }
     }
 
@@ -35,9 +35,9 @@ node {
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            //rose_deps.push("centos7-${env.BUILD_NUMBER}")
-            rose_deps.push("centos7-" + dateFormat.format(todaysDate))
-            rose_deps.push("centos7-latest")
+            //rose_deps.push("centos-7-${env.BUILD_NUMBER}")
+            rose_deps.push("centos-7-" + dateFormat.format(todaysDate))
+            rose_deps.push("centos-7-latest")
         }
     }
 }
