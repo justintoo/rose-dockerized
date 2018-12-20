@@ -19,6 +19,10 @@ node {
     	sh('(test -n "$(docker images -q -f dangling=true)" && docker rmi $(docker images -q -f dangling=true)) || true')
     }
 
+    stage('Prune All') {
+    	sh('docker system prune --all --force')
+    }
+
     stage('Disk Usage After') {
     	sh('df -h .')
     }
