@@ -1,10 +1,11 @@
 #!/bin/bash -ex
 
 : ${ROSE_VERSION:=$1}
-: ${ROSE_VERSION:=master}
 : ${ROSE_DESTDIR:=/home/rose/rose}
 : ${ROSE_PREFIX:=${ROSE_DESTDIR}/${ROSE_VERSION}}
 : ${ROSE_WORKSPACE:=${ROSE_PREFIX}/workspace}
+: ${ROSE_SOURCE:=${ROSE_WORKSPACE}/rose}
+: ${ROSE_BUILD:=${ROSE_WORKSPACE}/compilation}
 
 spack load     \
     boost      \
@@ -14,10 +15,11 @@ mkdir -p "${ROSE_WORKSPACE}"
 cd "${ROSE_WORKSPACE}"
  
 cat > setup.sh <<-EOF
+export ROSE_VERSION="${ROSE_VERSION}"
 export ROSE_PREFIX="${ROSE_PREFIX}"
 export ROSE_WORKSPACE="${ROSE_WORKSPACE}"
-export ROSE_SOURCE="\${ROSE_WORKSPACE}/rose"
-export ROSE_BUILD="\${ROSE_WORKSPACE}/build"
+export ROSE_SOURCE="${ROSE_SOURCE}"
+export ROSE_BUILD="${ROSE_BUILD}"
  
 export ROSE_VERSION="${ROSE_VERSION}"
 export ROSE_HOME="\${ROSE_PREFIX}"
@@ -30,7 +32,6 @@ EOF
  
 source "${ROSE_PREFIX}/setup.sh"
 
-mkdir -p "${ROSE_HOME}"
 cp setup.sh "${ROSE_HOME}"
 
 echo 'export "${ROSE_HOME}/setup.sh"' >> /home/rose/.bashrc

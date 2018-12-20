@@ -1,15 +1,9 @@
 #!/bin/bash -ex
 
-: ${ROSE_VERSION:=$1}
-: ${ROSE_VERSION:=master}
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 
-# TODO: Parallel build on mac dies with gcc segfault
-# PARALLELISM=1
+source "/home/rose/.bashrc"
 
-cd "~/rose/${ROSE_VERSION}"
-source setup.sh
- 
 cd "${ROSE_BUILD}"
  
 make -j${PARALLELISM} install-core || exit 1
