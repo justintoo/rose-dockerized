@@ -48,7 +48,6 @@ RUN cd "${SPACK_DESTDIR}" && \
     echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
     echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
     echo '/etc/profile.d/modules.sh' >> ~/.bashrc && \
-    echo 'spack load rose' >> ~/.bashrc && \
     spack compiler add
 
 #----------------------------------------------------------
