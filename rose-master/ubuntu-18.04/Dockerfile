@@ -5,7 +5,6 @@ MAINTAINER Justin Too <too1@llnl.gov>
 # System
 #----------------------------------------------------------
 RUN useradd rose -m -s /bin/bash
-RUN usermod -aG sudo rose
 ENV HOME /home/rose
 
 
