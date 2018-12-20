@@ -44,7 +44,7 @@ RUN apt-get update -y && \
 # 3. Add `spack` to ~/.bashrc
 #----------------------------------------------------------
 RUN cd "${SPACK_DESTDIR}" && \
-    git clone --branch SYSADMIN-240-update-to-rose-0.9.9.0 https://github.com/justintoo/spack && \
+    git clone --branch ROSE-1444-add-rose-0.9.10.0-cxx11 https://github.com/justintoo/spack && \
     echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
     echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
     echo '/etc/profile.d/modules.sh' >> ~/.bashrc && \
