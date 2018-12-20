@@ -8,10 +8,10 @@ node {
     }
 
     stage('Remove Exited Containers') {
-    	sh('docker rm $(docker ps -a -f status=exited -q)')
+    	sh('test -n "$(docker ps -a -f status=exited -q)" && docker rm $(docker ps -a -f status=exited -q)')
     }
 
     stage('Remove Dangling Images') {
-    	sh('docker rmi $(docker images -q -f dangling=true)')
+    	sh('test -n "$(docker images -q -f dangling=true)" && docker rmi $(docker images -q -f dangling=true)')
     }
 }
