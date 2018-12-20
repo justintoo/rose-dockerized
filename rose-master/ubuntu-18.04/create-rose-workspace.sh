@@ -12,9 +12,8 @@
 # Load Spack and ROSE Dependencies
 #-----------------------------------------------------------------
 . /usr/local/spack/share/spack/setup-env.sh
-spack load     \
-    boost      \
-    libtool
+spack load boost
+spack load libtool
 
 mkdir -p "${ROSE_WORKSPACE}"
 cd "${ROSE_WORKSPACE}"
