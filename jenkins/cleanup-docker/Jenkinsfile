@@ -7,11 +7,19 @@ node {
         checkout scm
     }
 
+    stage('Disk Usage Before') {
+    	sh('df -h .')
+    }
+
     stage('Remove Exited Containers') {
     	sh('(test -n "$(docker ps -a -f status=exited -q)" && docker rm $(docker ps -a -f status=exited -q)) || true')
     }
 
     stage('Remove Dangling Images') {
     	sh('(test -n "$(docker images -q -f dangling=true)" && docker rmi $(docker images -q -f dangling=true)) || true')
+    }
+
+    stage('Disk Usage After') {
+    	sh('df -h .')
     }
 }
