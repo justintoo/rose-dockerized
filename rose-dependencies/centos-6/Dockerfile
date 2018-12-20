@@ -31,12 +31,16 @@ RUN yum upgrade -y &&               \
     yum install -y                  \
         vim                         \
         emacs &&                    \
-    yum -y --enablerepo='*' clean all &&    \
-        rm -rf /var/cache/yum &&            \
-        rm -f /core* &&                     \
-        rm -rf /tmp/* &&                    \
-        dd if=/dev/zero of=/EMPTY bs=1M &&  \
-        rm -f /EMPTY
+    rm -f /var/lib/rpm/__*          \
+    rpm --rebuilddb -v -v
+
+# TOO1 (2018/12/20): Hanging on "Cleaning up list of fastest mirrors"
+#    yum -y --enablerepo='*' clean all &&    \
+#        rm -rf /var/cache/yum &&            \
+#        rm -f /core* &&                     \
+#        rm -rf /tmp/* &&                    \
+#        dd if=/dev/zero of=/EMPTY bs=1M &&  \
+#        rm -f /EMPTY
 
 #----------------------------------------------------------
 # Boost
