@@ -31,7 +31,7 @@ RUN yum upgrade -y &&               \
     yum install -y                  \
         vim                         \
         emacs &&                    \
-    rm -f /var/lib/rpm/__*          \
+    rm -f /var/lib/rpm/__* &&       \
     rpm --rebuilddb -v -v
 
 # TOO1 (2018/12/20): Hanging on "Cleaning up list of fastest mirrors"
