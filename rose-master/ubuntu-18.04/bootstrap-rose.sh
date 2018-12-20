@@ -2,8 +2,9 @@
 
 source "/home/rose/.bashrc"
 
-env | grep ROSE
+env
 ls
+pwd
  
 cd "${ROSE_SOURCE}"
 ./build || exit 1
