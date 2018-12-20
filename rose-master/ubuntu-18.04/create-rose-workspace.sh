@@ -13,7 +13,7 @@ spack load     \
 mkdir -p "${ROSE_WORKSPACE}"
 cd "${ROSE_WORKSPACE}"
  
-cat > "${ROSE_PREFIX}/setup.sh" <<-EOF
+cat > setup.sh <<-EOF
 export ROSE_PREFIX="${ROSE_PREFIX}"
 export ROSE_WORKSPACE="${ROSE_WORKSPACE}"
 export ROSE_SOURCE="\${ROSE_WORKSPACE}/rose"
