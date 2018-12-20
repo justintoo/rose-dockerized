@@ -3,6 +3,7 @@
 : ${ROSE_VERSION:=$1}
 : ${ROSE_DESTDIR:=/home/rose/rose}
 : ${ROSE_PREFIX:=${ROSE_DESTDIR}/${ROSE_VERSION}}
+: ${ROSE_HOME:=${ROSE_PREFIX}}
 : ${ROSE_WORKSPACE:=${ROSE_PREFIX}/workspace}
 : ${ROSE_SOURCE:=${ROSE_WORKSPACE}/rose}
 : ${ROSE_BUILD:=${ROSE_WORKSPACE}/compilation}
@@ -22,7 +23,7 @@ export ROSE_SOURCE="${ROSE_SOURCE}"
 export ROSE_BUILD="${ROSE_BUILD}"
  
 export ROSE_VERSION="${ROSE_VERSION}"
-export ROSE_HOME="\${ROSE_PREFIX}"
+export ROSE_HOME="\${ROSE_HOME}"
 export PATH="\${ROSE_HOME}/bin:\${PATH}"
 export LD_LIBRARY_PATH="\${ROSE_HOME}/lib:\${LD_LIBRARY_PATH}"
 
