@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-: ${ROSE_VERSION:=$1}
+: ${ROSE_VERSION:=$(curl "https://github.com/rose-compiler/rose-develop/blob/master/ROSE_VERSION")}
 : ${ROSE_DESTDIR:=/home/rose/rose}
 : ${ROSE_PREFIX:=${ROSE_DESTDIR}/${ROSE_VERSION}}
 : ${ROSE_HOME:=${ROSE_PREFIX}}
