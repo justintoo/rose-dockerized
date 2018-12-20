@@ -19,7 +19,7 @@ node {
          * docker build on the command line */
 
         dir('rose-master') {
-            rose = docker.build("rosecompiler/rose", "--no-cache .")
+            rose = docker.build("rosecompiler/rose", "--no-cache ubuntu-18.04")
         }
     }
 
@@ -35,9 +35,9 @@ node {
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            //rose.push("centos7-${env.BUILD_NUMBER}")
-            rose.push("centos7-" + dateFormat.format(todaysDate))
-            rose.push("centos7-latest")
+            //rose.push("ubuntu-18.04-${env.BUILD_NUMBER}")
+            rose.push("ubuntu-18.04-" + dateFormat.format(todaysDate))
+            rose.push("ubuntu-18.04-latest")
         }
     }
 }

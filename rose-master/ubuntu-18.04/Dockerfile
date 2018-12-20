@@ -1,5 +1,13 @@
-FROM rosecompiler/rose-dependencies:centos7-latest
+FROM rosecompiler/rose-dependencies:ubuntu-18.04-latest
 MAINTAINER Justin Too <too1@llnl.gov>
+
+#----------------------------------------------------------
+# System
+#----------------------------------------------------------
+RUN useradd rose -m -s /bin/bash
+RUN usermod -aG sudo rose
+ENV HOME /home/rose
+
 
 #----------------------------------------------------------
 # ROSE
