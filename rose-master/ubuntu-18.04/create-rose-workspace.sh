@@ -30,10 +30,7 @@ export BOOST_HOME="\$(spack location -i boost)"
 export LD_LIBRARY_PATH="\${BOOST_HOME}/lib:\${LD_LIBRARY_PATH}"
 EOF
  
-source "${ROSE_PREFIX}/setup.sh"
-
 cp setup.sh "${ROSE_HOME}"
-
 echo 'export "${ROSE_HOME}/setup.sh"' >> /home/rose/.bashrc
  
 git clone https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
