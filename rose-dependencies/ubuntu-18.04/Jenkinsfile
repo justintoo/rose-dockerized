@@ -20,7 +20,7 @@ node {
 
         dir('rose-dependencies') {
             sh('pwd')
-            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache ubuntu-18.04")
+            rose_deps = docker.build("rosecompiler/rose-dependencies", "--no-cache --rm ubuntu-18.04")
         }
     }
 
