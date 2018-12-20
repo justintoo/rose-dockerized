@@ -34,7 +34,7 @@ export LD_LIBRARY_PATH="\${BOOST_HOME}/lib:\${LD_LIBRARY_PATH}"
 EOF
  
 cp setup.sh "${ROSE_HOME}"
-echo 'export "${ROSE_HOME}/setup.sh"' >> /home/rose/.bashrc
- 
+echo "export \"${ROSE_HOME}/setup.sh\"" >> /home/rose/.bashrc
+
 git clone https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
  
