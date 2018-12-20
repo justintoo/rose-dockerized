@@ -1,0 +1,17 @@
+node {
+    println()
+
+    stage('Clone repository') {
+        /* Let's make sure we have the repository cloned to our workspace */
+
+        checkout scm
+    }
+
+    stage('Remove Exited Containers') {
+    	sh('docker rm $(docker ps -a -f status=exited -q)')
+    }
+
+    stage('Remove Dangling Images') {
+    	sh('docker rmi $(docker images -q -f dangling=true)')
+    }
+}
