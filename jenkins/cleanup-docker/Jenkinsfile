@@ -12,6 +12,6 @@ node {
     }
 
     stage('Remove Dangling Images') {
-    	sh('(test -n "$(docker images -q -f dangling=true)" && docker rmi $(docker images -q -f dangling=true)) || true')
+    	sh('(test -n "$(docker images -q -f dangling=true)" && docker rmi --force $(docker images -q -f dangling=true)) || true')
     }
 }
