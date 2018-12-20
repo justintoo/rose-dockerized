@@ -28,7 +28,7 @@ ENV PATH="${SPACK_HOME}/bin:${PATH}"
 RUN apt-get update -y && \
         apt-get install -y \
             vim emacs git wget g++-4.8 python curl make automake \
-            libtool flex bison ghostscript graphviz unzip environment-modules  && \
+            libtool flex bison ghostscript graphviz unzip tcl environment-modules  && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 && \
         update-alternatives --install /usr/bin/cpp cpp-bin /usr/bin/cpp-4.8 100 && \
