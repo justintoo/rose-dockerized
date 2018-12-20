@@ -51,7 +51,7 @@ RUN cd "${SPACK_DESTDIR}" && \
     git clone --branch ROSE-1444-add-rose-0.9.10.0-cxx11 https://github.com/justintoo/spack && \
     echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
     echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
-    echo '/etc/profile.d/modules.sh' >> ~/.bashrc && \
+    echo '. /etc/profile.d/modules.sh' >> ~/.bashrc && \
     spack compiler add
 
 #----------------------------------------------------------
