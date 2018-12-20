@@ -6,7 +6,7 @@ MAINTAINER Justin Too <too1@llnl.gov>
 #----------------------------------------------------------
 RUN useradd rose -m -s /bin/bash
 ENV HOME /home/rose
-
+ENV ROSE_VERSION $(curl https://raw.githubusercontent.com/rose-compiler/rose-develop/master/ROSE_VERSION)
 
 #----------------------------------------------------------
 # ROSE
@@ -21,8 +21,8 @@ RUN chmod +x ./create-rose-workspace.sh && \
     chmod +x ./configure-rose.sh &&        \
     chmod +x ./install-rose.sh
 
-RUN ./create-rose-workspace.sh master &&   \
-    ./bootstrap-rose.sh master &&          \
-    ./configure-rose.sh master &&          \
-    ./install-rose.sh master
+RUN ./create-rose-workspace.sh ${ROSE_VERSION} &&   \
+    ./bootstrap-rose.sh ${ROSE_VERSION} &&          \
+    ./configure-rose.sh ${ROSE_VERSION} &&          \
+    ./install-rose.sh ${ROSE_VERSION}
 
