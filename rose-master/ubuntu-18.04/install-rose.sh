@@ -35,7 +35,7 @@ export ROSE_HOME="\${ROSE_HOME}"
 export PATH="\${ROSE_HOME}/bin:\${PATH}"
 export LD_LIBRARY_PATH="\${ROSE_HOME}/lib:\${LD_LIBRARY_PATH}"
 
-export BOOST_HOME="\$(spack location -i boost)"
+export BOOST_HOME="\$(spack location -i boost@1.68.0)"
 export LD_LIBRARY_PATH="\${BOOST_HOME}/lib:\${LD_LIBRARY_PATH}"
 EOF
 
