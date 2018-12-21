@@ -14,6 +14,7 @@ MAINTAINER Justin Too <too1@llnl.gov>
 #--------------------------------------------------------------------------
 
 USER root
+SHELL ["/bin/bash", "-c"]
 
 ARG SPACK_ARGS="--verbose --insecure"
 ARG SPACK_INSTALL_ARGS="--no-checksum"
@@ -47,7 +48,7 @@ RUN cd "${SPACK_DESTDIR}" && \
     git clone --branch ROSE-1444-add-rose-0.9.10.0-cxx11 https://github.com/justintoo/spack && \
     echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
     echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
-    echo '/etc/profile.d/modules.sh' >> ~/.bashrc && \
+    echo '. /usr/share/modules/init/bash' >> ~/.bashrc && \
     spack compiler add
 
 #----------------------------------------------------------

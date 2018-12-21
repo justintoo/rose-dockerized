@@ -13,6 +13,7 @@ MAINTAINER Justin Too <too1@llnl.gov>
 # 3. Install ROSE development system dependencies
 #--------------------------------------------------------------------------
 USER root
+SHELL ["/bin/bash", "-c"]
 
 #----------------------------------------------------------
 # Install system dependencies, then remove unneeded bloat

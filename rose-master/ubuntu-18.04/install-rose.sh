@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 
