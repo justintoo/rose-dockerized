@@ -59,5 +59,6 @@ RUN cd "${SPACK_DESTDIR}" && \
 #----------------------------------------------------------
 # Install ROSE dependencies with Spack
 #----------------------------------------------------------
+RUN spack ${SPACK_ARGS} install ${SPACK_INSTALL_ARGS} boost@1.68.0
 RUN spack ${SPACK_ARGS} install ${SPACK_INSTALL_ARGS} --only dependencies rose +cxx11 boost@1.68.0 %gcc@4.8
 
