@@ -15,18 +15,7 @@ WORKDIR /home/rose
 #----------------------------------------------------------
 # ROSE
 #----------------------------------------------------------
-COPY --chown=rose create-rose-workspace.sh .
-COPY --chown=rose bootstrap-rose.sh .
-COPY --chown=rose configure-rose.sh .
-COPY --chown=rose install-rose.sh .
-
-RUN chmod +x ./create-rose-workspace.sh && \
-    chmod +x ./bootstrap-rose.sh &&        \
-    chmod +x ./configure-rose.sh &&        \
-    chmod +x ./install-rose.sh
-
-RUN ./create-rose-workspace.sh
-#RUN ./bootstrap-rose.sh ${ROSE_VERSION}
-#RUN ./configure-rose.sh ${ROSE_VERSION}
-#RUN ./install-rose.sh ${ROSE_VERSION}
+COPY --chown=rose install.sh .
+RUN chmod +x ./install.sh
+RUN ./install.sh
 
