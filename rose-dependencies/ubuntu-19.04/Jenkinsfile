@@ -37,7 +37,7 @@ node {
          * Pushing multiple tags is cheap, as all the layers are reused. */
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
             //rose_deps.push("ubuntu-19.04-${env.BUILD_NUMBER}")
-            rose_deps.push("ubuntu-19.04-" + dateFormat.format(todaysDate))
+            //rose_deps.push("ubuntu-19.04-" + dateFormat.format(todaysDate))
             rose_deps.push("ubuntu-19.04-latest")
         }
     }

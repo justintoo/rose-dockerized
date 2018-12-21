@@ -25,9 +25,8 @@ RUN chmod +x ./create-rose-workspace.sh && \
     chmod +x ./configure-rose.sh &&        \
     chmod +x ./install-rose.sh
 
-RUN . /home/rose/.bashrc &&                    \
-    ./create-rose-workspace.sh &&              \
-    ./bootstrap-rose.sh ${ROSE_VERSION} &&     \
-    ./configure-rose.sh ${ROSE_VERSION} &&     \
-    ./install-rose.sh ${ROSE_VERSION}
+RUN ./create-rose-workspace.sh
+#RUN ./bootstrap-rose.sh ${ROSE_VERSION}
+#RUN ./configure-rose.sh ${ROSE_VERSION}
+#RUN ./install-rose.sh ${ROSE_VERSION}
 
