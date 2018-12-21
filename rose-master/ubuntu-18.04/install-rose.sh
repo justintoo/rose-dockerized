@@ -9,22 +9,20 @@
 : ${ROSE_SOURCE:=${ROSE_WORKSPACE}/rose}
 : ${ROSE_BUILD:=${ROSE_WORKSPACE}/compilation}
 
-#-----------------------------------------------------------------
-# Load Spack and ROSE Dependencies
-#-----------------------------------------------------------------
-export SPACK_HOME="/usr/local/spack"
-source /home/rose/.bashrc
-source ${SPACK_HOME}/share/spack/setup-env.sh
-. /usr/share/modules/init/bash || true
-
-spack load boost
-spack load libtool
-
 mkdir -p "${ROSE_WORKSPACE}"
 cd "${ROSE_WORKSPACE}"
  
+#-----------------------------------------------------------------
+# Load Spack and ROSE Dependencies
+#-----------------------------------------------------------------
 cat > setup.sh <<-EOF
 #!/bin/bash
+
+export SPACK_HOME="/usr/local/spack"
+source \${SPACK_HOME}/share/spack/setup-env.sh
+. /usr/share/modules/init/bash || true
+spack load boost
+spack load libtool
 
 export ROSE_VERSION="${ROSE_VERSION}"
 export ROSE_PREFIX="${ROSE_PREFIX}"
@@ -43,6 +41,7 @@ EOF
 
 cp setup.sh "${ROSE_HOME}"
 echo "source \"${ROSE_HOME}/setup.sh\"" >> /home/rose/.bashrc
+source /home/rose/.bashrc
 
 git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
 cd "${ROSE_SOURCE}"
