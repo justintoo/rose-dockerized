@@ -39,6 +39,17 @@ export BOOST_HOME="\$(spack location -i boost)"
 export LD_LIBRARY_PATH="\${BOOST_HOME}/lib:\${LD_LIBRARY_PATH}"
 EOF
 
+source setup.sh
+
+cat <<-EOF
+========================================================
+= setup.sh
+========================================================
+$(cat setup.sh)
+echo "BOOST_HOME=$BOOST_HOME"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+EOF
+
 cp setup.sh "${ROSE_HOME}"
 echo "source \"${ROSE_HOME}/setup.sh\"" >> /home/rose/.bashrc
 source /home/rose/.bashrc
