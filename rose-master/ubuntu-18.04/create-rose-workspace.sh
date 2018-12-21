@@ -11,7 +11,8 @@
 #-----------------------------------------------------------------
 # Load Spack and ROSE Dependencies
 #-----------------------------------------------------------------
-. /usr/local/spack/share/spack/setup-env.sh
+source /home/rose/.bashrc
+
 spack load boost
 spack load libtool
 
