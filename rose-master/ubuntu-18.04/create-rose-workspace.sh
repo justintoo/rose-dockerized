@@ -39,5 +39,5 @@ cat setup.sh
 cp setup.sh "${ROSE_HOME}"
 echo "source \"${ROSE_HOME}/setup.sh\"" >> /home/rose/.bashrc
 
-git clone https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
+git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
  
