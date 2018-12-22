@@ -41,7 +41,6 @@ git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SO
 cd "${ROSE_SOURCE}"
 
 ./build || exit 1
-exit 0
 
 mkdir "${ROSE_BUILD}"
 cd "${ROSE_BUILD}"
