@@ -36,7 +36,7 @@ node {
          * Pushing multiple tags is cheap, as all the layers are reused. */
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
             //rose.push("centos-7-${env.BUILD_NUMBER}")
-            rose.push("centos-7-" + dateFormat.format(todaysDate))
+            //rose.push("centos-7-" + dateFormat.format(todaysDate))
             rose.push("centos-7-latest")
         }
     }
