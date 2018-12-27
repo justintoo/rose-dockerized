@@ -6,11 +6,12 @@ SHELL ["/bin/bash", "-c"]
 #----------------------------------------------------------
 # System
 #----------------------------------------------------------
-RUN useradd rose -m -s /bin/bash
-RUN cp /root/.bashrc /home/rose/.bashrc
-USER rose
-ENV HOME /home/rose
-WORKDIR /home/rose
+#RUN useradd rose -m -s /bin/bash
+#RUN cp /root/.bashrc /home/rose/.bashrc
+#USER rose
+#ENV HOME /home/rose
+#WORKDIR /home/rose
+WORKDIR /root
 
 #----------------------------------------------------------
 # ROSE
