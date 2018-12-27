@@ -44,21 +44,50 @@ RUN apt-get update -y && \
         rm -rf /tmp/*
 
 #----------------------------------------------------------
-# 1. Install Spack to /usr/local/spack
-# 2. Add compilers from the environment to Spack
-# 3. Add `spack` to ~/.bashrc
+# Boost
 #----------------------------------------------------------
-RUN cd "${SPACK_DESTDIR}" && \
-    git clone --branch ROSE-1444-add-rose-0.9.10.0-cxx11 https://github.com/justintoo/spack && \
-    echo 'export SPACK_HOME="${SPACK_HOME}"' >> ~/.bashrc && \
-    echo 'export PATH="${SPACK_HOME}/bin:${PATH}"' >> ~/.bashrc && \
-    echo '. ${SPACK_HOME}/share/spack/setup-env.sh' >> ~/.bashrc && \
-    echo '. /usr/share/modules/init/bash' >> ~/.bashrc && \
-    spack compiler add
+# Fails if not all optional dependencies are available =/
+RUN mkdir -p ~/opt/boost && \
+    cd ~/opt/boost && \
+    curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/de476176d0e5540aa382781a9cadd3e45b407eb9/install-boost.sh | bash /dev/stdin 1.55.0 && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
 
 #----------------------------------------------------------
-# Install ROSE dependencies with Spack
+# Bison
 #----------------------------------------------------------
-RUN spack ${SPACK_ARGS} install ${SPACK_INSTALL_ARGS} boost@1.68.0 %gcc@4.8
-RUN spack ${SPACK_ARGS} install ${SPACK_INSTALL_ARGS} --only dependencies rose +cxx11 boost@1.68.0 %gcc@4.8
+RUN mkdir -p ~/opt/bison && \
+    cd ~/opt/bison && \
+    curl -s https://gist.githubusercontent.com/justintoo/4d43442f1970690f846d/raw/395224c39452f5980ba513390c55393261410fd5/install-bison.sh | bash /dev/stdin 3.0 && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+
+#----------------------------------------------------------
+# Autoconf
+#----------------------------------------------------------
+RUN mkdir -p ~/opt/autoconf && \
+    cd ~/opt/autoconf && \
+    curl -s https://gist.githubusercontent.com/rosecompiler/679d0aae205f687a7091/raw/1cd8b2e1843c6301b20b537770d0fe512aff24d5/install-autoconf.sh | bash /dev/stdin 2.69 && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+
+#----------------------------------------------------------
+# Automake
+#----------------------------------------------------------
+RUN source ~/opt/autoconf/2.69/setup.sh && \
+    mkdir -p ~/opt/automake && \
+    cd ~/opt/automake &&  \
+    curl -s https://gist.githubusercontent.com/rosecompiler/0354522d809b5803f17a/raw/d5c091a53e8831279b1ce49385572f28176771e8/install-automake.sh | bash /dev/stdin 1.14 && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+
+#----------------------------------------------------------
+# Libtool
+#----------------------------------------------------------
+RUN source /root/opt/automake/1.14/autoconf/2.69/setup.sh && \
+    mkdir -p ~/opt/libtool && \
+    cd ~/opt/libtool && \
+    curl -s https://gist.githubusercontent.com/rosecompiler/f13bf9725f9ac99f6639/raw/2e759064a70d6a136509339bf279929910da9277/install-libtool.sh | bash /dev/stdin 2.4 && \
+    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+
+#----------------------------------------------------------
+# Environment Setup
+#----------------------------------------------------------
+COPY setup.sh /root/opt/setup.sh
 
