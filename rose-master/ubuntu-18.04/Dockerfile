@@ -16,7 +16,8 @@ WORKDIR /root
 #----------------------------------------------------------
 # ROSE
 #----------------------------------------------------------
-COPY --chown=rose install-rose.sh .
+#COPY --chown=rose install-rose.sh .
+COPY install-rose.sh .
 RUN chmod +x ./install-rose.sh
 RUN ./install-rose.sh
 
