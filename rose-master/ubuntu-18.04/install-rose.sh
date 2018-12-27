@@ -18,11 +18,12 @@ cd "${ROSE_WORKSPACE}"
 cat > setup.sh <<-EOF
 #!/bin/bash
 
-export SPACK_HOME="/usr/local/spack"
-source \${SPACK_HOME}/share/spack/setup-env.sh
-. /usr/share/modules/init/bash || true
-spack load boost
-spack load libtool
+#export SPACK_HOME="/usr/local/spack"
+#source \${SPACK_HOME}/share/spack/setup-env.sh
+#. /usr/share/modules/init/bash || true
+#spack load boost
+#spack load libtool
+source /root/opt/setup.sh
 
 export ROSE_VERSION="${ROSE_VERSION}"
 export ROSE_PREFIX="${ROSE_PREFIX}"
@@ -35,7 +36,7 @@ export ROSE_HOME="\${ROSE_HOME}"
 export PATH="\${ROSE_HOME}/bin:\${PATH}"
 export LD_LIBRARY_PATH="\${ROSE_HOME}/lib:\${LD_LIBRARY_PATH}"
 
-export BOOST_HOME="\$(spack location -i boost@1.68.0)"
+#export BOOST_HOME="\$(spack location -i boost@1.68.0)"
 export LD_LIBRARY_PATH="\${BOOST_HOME}/lib:\${LD_LIBRARY_PATH}"
 EOF
 
@@ -58,7 +59,6 @@ git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SO
 cd "${ROSE_SOURCE}"
 
 ./build || exit 1
-exit 0
 
 mkdir "${ROSE_BUILD}"
 cd "${ROSE_BUILD}"
@@ -68,10 +68,10 @@ cd "${ROSE_BUILD}"
     --with-boost="${BOOST_HOME}"  \
     --disable-boost-version-check \
     --enable-edg_version=4.12     \
-    --enable-languages=c,c++,binaries \
-    CXXFLAGS=-std=c++11 || (cat config.log && exit 1)
+    --enable-languages=c,c++,binaries || (cat config.log && exit 1)
  
 make -j${PARALLELISM} install-core || exit 1
+make -j${PARALLELISM} install -C tools/ || exit 1
 
 cat >> ~/.bash_profile <<-EOF
 source "${ROSE_HOME}/setup.sh" || false
