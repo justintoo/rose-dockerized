@@ -1,18 +1,6 @@
 FROM ubuntu:16.04
 MAINTAINER Justin Too <too1@llnl.gov>
 
-#--------------------------------------------------------------------------
-# Install general software development dependencies
-#
-# 1. Make sure the software packages that we'll install are up-to-date with the
-#    Package Management System
-# 2. Install general development tools
-# 3. Install ROSE development system dependencies
-#--------------------------------------------------------------------------
-# Tip: Remove workspace caches in each layer, otherwise it'll still exist on each layer
-# even if we remove it in the final layer. https://blog.codeship.com/reduce-docker-image-size/
-#--------------------------------------------------------------------------
-
 USER root
 SHELL ["/bin/bash", "-c"]
 
@@ -20,7 +8,7 @@ SHELL ["/bin/bash", "-c"]
 # https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DESTDIR          ./opt
+ENV DESTDIR          /root/opt
 
 ENV ROSE_VERSION     master
 ENV ROSE_REPO        release
@@ -32,7 +20,6 @@ ENV MPFR_VERSION     3.1.2
 ENV MPC_VERSION      1.0
 ENV GCC_VERSION      4.8.1
 ENV BOOST_VERSION    1.54.0
-ENV JDK_VERSION      1.8.0_25
 
 #--------------------------------------------------------------------------
 # Install general software development dependencies
@@ -134,15 +121,6 @@ RUN \
     pushd boost && \
         curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/fba39f95e4eba2b0b83506e11c81eacbc44fb5ed/install-boost.sh | \
             bash /dev/stdin ${BOOST_VERSION}
-
-RUN \
-    #--------------------------------------------------------------------------
-    # Java Development Kit (JDK)
-    #--------------------------------------------------------------------------
-    mkdir jdk && \
-    pushd jdk && \
-        curl -s https://gist.githubusercontent.com/rosecompiler/781276f3992429a8b5a6/raw/658d3fd86a0bff19bb2a7cd3c023055407257ac0/install-jdk-8u25.sh | \
-            bash /dev/stdin
 
 #--------------------------------------------------------------------------
 # Remove installation workspaces for dependencies
