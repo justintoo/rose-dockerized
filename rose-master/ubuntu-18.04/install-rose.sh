@@ -2,7 +2,7 @@
 
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 : ${ROSE_VERSION:=$(curl "https://raw.githubusercontent.com/rose-compiler/rose-develop/master/ROSE_VERSION")}
-: ${ROSE_DESTDIR:=/home/rose/rose}
+: ${ROSE_DESTDIR:=$HOME/opt/rose}
 : ${ROSE_PREFIX:=${ROSE_DESTDIR}/${ROSE_VERSION}}
 : ${ROSE_HOME:=${ROSE_PREFIX}}
 : ${ROSE_WORKSPACE:=${ROSE_PREFIX}/workspace}
@@ -32,7 +32,7 @@ export ROSE_SOURCE="${ROSE_SOURCE}"
 export ROSE_BUILD="${ROSE_BUILD}"
  
 export ROSE_VERSION="${ROSE_VERSION}"
-export ROSE_HOME="\${ROSE_HOME}"
+export ROSE_HOME="\${ROSE_PREFIX}"
 export PATH="\${ROSE_HOME}/bin:\${PATH}"
 export LD_LIBRARY_PATH="\${ROSE_HOME}/lib:\${LD_LIBRARY_PATH}"
 
@@ -79,37 +79,15 @@ EOF
  
 cat <<-EOF
 -------------------------------------------------------------------------------
-[SUCCESS} ROSE was successfully installed here:
-[SUCCESS} 
-[SUCCESS}     ${ROSE_HOME}
-[SUCCESS} 
-[SUCCESS} Use this command to add ROSE to your shell environment:
-[SUCCESS} 
-[SUCCESS}     $ source "${ROSE_HOME}/setup.sh"
-[SUCCESS} 
-[SUCCESS} Note: This command was added to your ~/.bash_profile.
--------------------------------------------------------------------------------
-EOF
-
-cd "${ROSE_BUILD}"
- 
-make -j${PARALLELISM} install-core || exit 1
-
-cat >> ~/.bash_profile <<-EOF
-source "${ROSE_HOME}/setup.sh" || false
-EOF
- 
-cat <<-EOF
--------------------------------------------------------------------------------
-[SUCCESS} ROSE was successfully installed here:
-[SUCCESS} 
-[SUCCESS}     ${ROSE_HOME}
-[SUCCESS} 
-[SUCCESS} Use this command to add ROSE to your shell environment:
-[SUCCESS} 
-[SUCCESS}     $ source "${ROSE_HOME}/setup.sh"
-[SUCCESS} 
-[SUCCESS} Note: This command was added to your ~/.bash_profile.
+[SUCCESS] ROSE was successfully installed here:
+[SUCCESS] 
+[SUCCESS]     ${ROSE_HOME}
+[SUCCESS] 
+[SUCCESS] Use this command to add ROSE to your shell environment:
+[SUCCESS] 
+[SUCCESS]     $ source "${ROSE_HOME}/setup.sh"
+[SUCCESS] 
+[SUCCESS] Note: This command was added to your ~/.bash_profile.
 -------------------------------------------------------------------------------
 EOF
 
