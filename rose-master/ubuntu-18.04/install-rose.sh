@@ -52,8 +52,8 @@ echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 EOF
 
 cp setup.sh "${ROSE_HOME}"
-echo "source \"${ROSE_HOME}/setup.sh\"" >> /home/rose/.bashrc
-source /home/rose/.bashrc
+echo "source \"${ROSE_HOME}/setup.sh\"" >> "$HOME/.bashrc"
+source "$HOME/.bashrc"
 
 git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
 cd "${ROSE_SOURCE}"
