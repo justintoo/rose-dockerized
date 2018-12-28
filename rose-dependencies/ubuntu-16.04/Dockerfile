@@ -16,84 +16,139 @@ MAINTAINER Justin Too <too1@llnl.gov>
 USER root
 SHELL ["/bin/bash", "-c"]
 
-ARG SPACK_ARGS="--verbose --insecure"
-ARG SPACK_INSTALL_ARGS="--no-checksum"
-
-ENV SPACK_DESTDIR="/usr/local"
-ENV SPACK_HOME="${SPACK_DESTDIR}/spack"
-ENV PATH="${SPACK_HOME}/bin:${PATH}"
-
 # Installing tzdata hangs on interactive promot
 # https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 ENV DEBIAN_FRONTEND=noninteractive
 
+ENV DESTDIR          ./opt
+
+ENV ROSE_VERSION     master
+ENV ROSE_REPO        release
 ENV AUTOCONF_VERSION 2.69
 ENV AUTOMAKE_VERSION 1.14
 ENV LIBTOOL_VERSION  2.4
 ENV GMP_VERSION      5.1.2
 ENV MPFR_VERSION     3.1.2
 ENV MPC_VERSION      1.0
-ENV GCC_VERSION      5.4.0
-ENV BOOST_VERSION    1.69.0
+ENV GCC_VERSION      4.8.1
+ENV BOOST_VERSION    1.54.0
+ENV JDK_VERSION      1.8.0_25
 
-#----------------------------------------------------------
-# Install system dependencies, then remove unneeded bloat
-#----------------------------------------------------------
+#--------------------------------------------------------------------------
+# Install general software development dependencies
+#
+# 1. Make sure the software packages that we'll install are up-to-date with the
+#    Package Management System; automatically runs `apt-get update`
+# 2. Install general development tools
+# 3. Install ROSE development system dependencies
+#--------------------------------------------------------------------------
 RUN apt-get update -y && \
         apt-get install -y \
-            vim emacs git wget g++-5.4 python curl make automake \
+            vim emacs git wget g++-4.8 python curl make automake \
             libtool flex bison ghostscript graphviz unzip tcl tcl-dev environment-modules  && \
-        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5.4 100 && \
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.4 100 && \
+        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100 && \
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 && \
         update-alternatives --install /usr/bin/cpp cpp-bin /usr/bin/cpp-4.8 100 && \
-        apt-get install -y gfortran-5.4 && \
-        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-5.4 100 && \
+        apt-get install -y gfortran-4.8 && \
+        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-4.8 100 && \
         ln -s /usr/include/x86_64-linux-gnu/sys /usr/include/sys && \
     apt-get clean && \
         rm -rf /tmp/*
 
-#----------------------------------------------------------
-# Boost
-#----------------------------------------------------------
-# Fails if not all optional dependencies are available =/
-RUN mkdir -p ~/opt/boost && \
-    cd ~/opt/boost && \
-    curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/de476176d0e5540aa382781a9cadd3e45b407eb9/install-boost.sh | bash /dev/stdin 1.69.0 && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+#--------------------------------------------------------------------------
+# 4. Install custom ROSE development dependencies
+#--------------------------------------------------------------------------
+RUN mkdir -p ${DESTDIR}
+WORKDIR ${DESTDIR}
 
-#----------------------------------------------------------
-# Bison
-#----------------------------------------------------------
-RUN mkdir -p ~/opt/bison && \
-    cd ~/opt/bison && \
-    curl -s https://gist.githubusercontent.com/justintoo/4d43442f1970690f846d/raw/395224c39452f5980ba513390c55393261410fd5/install-bison.sh | bash /dev/stdin 3.0 && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+RUN \ 
+    #--------------------------------------------------------------------------
+    # Autoconf
+    #--------------------------------------------------------------------------
+    mkdir autoconf && \
+    pushd autoconf && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/679d0aae205f687a7091/raw/1cd8b2e1843c6301b20b537770d0fe512aff24d5/install-autoconf.sh | \
+            bash /dev/stdin ${AUTOCONF_VERSION} && \
+            source ${AUTOCONF_VERSION}/setup.sh && \ 
+    popd && \
+    #--------------------------------------------------------------------------
+    # Automake
+    #--------------------------------------------------------------------------
+    mkdir automake && \
+    pushd automake && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/0354522d809b5803f17a/raw/d5c091a53e8831279b1ce49385572f28176771e8/install-automake.sh | \
+            bash /dev/stdin ${AUTOMAKE_VERSION} && \
+            source ${AUTOMAKE_VERSION}/autoconf/${AUTOCONF_VERSION}/setup.sh && \
+    popd && \
+    #--------------------------------------------------------------------------
+    # Libtool
+    #--------------------------------------------------------------------------
+    mkdir libtool && \
+    pushd libtool && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/f13bf9725f9ac99f6639/raw/2e759064a70d6a136509339bf279929910da9277/install-libtool.sh | \
+            bash /dev/stdin ${LIBTOOL_VERSION}
 
-#----------------------------------------------------------
-# Autoconf
-#----------------------------------------------------------
-RUN mkdir -p ~/opt/autoconf && \
-    cd ~/opt/autoconf && \
-    curl -s https://gist.githubusercontent.com/rosecompiler/679d0aae205f687a7091/raw/1cd8b2e1843c6301b20b537770d0fe512aff24d5/install-autoconf.sh | bash /dev/stdin 2.69 && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+RUN \
+    source libtool/${LIBTOOL_VERSION}/automake/${AUTOMAKE_VERSION}/autoconf/${AUTOCONF_VERSION}/setup.sh && \
+    #--------------------------------------------------------------------------
+    # GMP
+    #--------------------------------------------------------------------------
+    mkdir gmp && \
+    pushd gmp && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/815bdf7fbe90ec2dfe8c/raw/048a81419e8e013a9352d31e76eeabd6b8e00fa9/install-gmp.sh | \
+            bash /dev/stdin ${GMP_VERSION} && \
+            source ${GMP_VERSION}/setup.sh && \
+    popd && \
+    #--------------------------------------------------------------------------
+    # MPFR
+    #--------------------------------------------------------------------------
+    mkdir mpfr && \
+    pushd mpfr && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/8f00ffbd5e13f8978c08/raw/eeaba5a779d7a8b5d05f00101c3d14689933b700/install-mpfr.sh | \
+            bash /dev/stdin ${MPFR_VERSION} && \
+            source ${MPFR_VERSION}/gmp/${GMP_VERSION}/setup.sh && \
+    popd && \
+    #--------------------------------------------------------------------------
+    # MPC
+    #--------------------------------------------------------------------------
+    mkdir mpc && \
+    pushd mpc && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/117e626a80d4865aaafb/raw/d907b0461ef3340a7359ef786fcac835efd84738/install-mpc.sh | \
+            bash /dev/stdin ${MPC_VERSION} && \
+            source ${MPC_VERSION}/mpfr/${MPFR_VERSION}/gmp/${GMP_VERSION}/setup.sh && \
+    popd && \
+    #--------------------------------------------------------------------------
+    # GCC
+    #--------------------------------------------------------------------------
+    mkdir gcc && \
+    pushd gcc && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/cfafc452a2fdc1446968/raw/86087252c73d07b7a326a9a5c77cdad0acbb5736/install-gcc.sh | \
+            bash /dev/stdin ${GCC_VERSION}
 
-#----------------------------------------------------------
-# Automake
-#----------------------------------------------------------
-RUN source ~/opt/autoconf/2.69/setup.sh && \
-    mkdir -p ~/opt/automake && \
-    cd ~/opt/automake &&  \
-    curl -s https://gist.githubusercontent.com/rosecompiler/0354522d809b5803f17a/raw/d5c091a53e8831279b1ce49385572f28176771e8/install-automake.sh | bash /dev/stdin 1.14 && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+RUN \
+    source gcc/${GCC_VERSION}/setup.sh && \
+    #--------------------------------------------------------------------------
+    # Boost
+    #--------------------------------------------------------------------------
+    mkdir boost && \
+    pushd boost && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/e2916fb206f42f736e07/raw/fba39f95e4eba2b0b83506e11c81eacbc44fb5ed/install-boost.sh | \
+            bash /dev/stdin ${BOOST_VERSION}
 
-#----------------------------------------------------------
-# Libtool
-#----------------------------------------------------------
-RUN source ~/opt/automake/1.16/autoconf/2.69/setup.sh && \
-    mkdir -p ~/opt/libtool && \
-    cd ~/opt/libtool && \
-    curl -s https://gist.githubusercontent.com/rosecompiler/f13bf9725f9ac99f6639/raw/2e759064a70d6a136509339bf279929910da9277/install-libtool.sh | bash /dev/stdin 2.4 && \
-    find . -maxdepth 7 -type d -iname "*workspace*" -exec rm -rf {} \ || true;
+RUN \
+    #--------------------------------------------------------------------------
+    # Java Development Kit (JDK)
+    #--------------------------------------------------------------------------
+    mkdir jdk && \
+    pushd jdk && \
+        curl -s https://gist.githubusercontent.com/rosecompiler/781276f3992429a8b5a6/raw/658d3fd86a0bff19bb2a7cd3c023055407257ac0/install-jdk-8u25.sh | \
+            bash /dev/stdin
+
+#--------------------------------------------------------------------------
+# Remove installation workspaces for dependencies
+#--------------------------------------------------------------------------
+RUN \
+    find ${DESTDIR} -maxdepth 7 -type d -name '*workspace*' | xargs rm -rf
 
 #----------------------------------------------------------
 # Environment Setup
