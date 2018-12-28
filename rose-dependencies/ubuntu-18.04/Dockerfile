@@ -32,13 +32,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 #----------------------------------------------------------
 RUN apt-get update -y && \
         apt-get install -y \
-            vim emacs git wget g++-4.8 python curl make automake \
+            vim emacs git wget g++-5 python curl make automake \
             libtool flex bison ghostscript graphviz unzip tcl tcl-dev environment-modules  && \
-        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100 && \
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 && \
-        update-alternatives --install /usr/bin/cpp cpp-bin /usr/bin/cpp-4.8 100 && \
-        apt-get install -y gfortran-4.8 && \
-        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-4.8 100 && \
+        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100 && \
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100 && \
+        update-alternatives --install /usr/bin/cpp cpp-bin /usr/bin/cpp-5 100 && \
+        apt-get install -y gfortran-5 && \
+        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-5 100 && \
         ln -s /usr/include/x86_64-linux-gnu/sys /usr/include/sys && \
     apt-get clean && \
         rm -rf /tmp/*
