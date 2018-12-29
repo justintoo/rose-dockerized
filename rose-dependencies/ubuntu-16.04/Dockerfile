@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-c"]
 # https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV DESTDIR          /root/opt
+ENV DEPS_DESTDIR          /root/opt
 
 ENV ROSE_VERSION     master
 ENV ROSE_REPO        release
@@ -45,8 +45,8 @@ RUN apt-get update -y && \
 #--------------------------------------------------------------------------
 # 4. Install custom ROSE development dependencies
 #--------------------------------------------------------------------------
-RUN mkdir -p ${DESTDIR}
-WORKDIR ${DESTDIR}
+RUN mkdir -p ${DEPS_DESTDIR}
+WORKDIR ${DEPS_DESTDIR}
 
 RUN \ 
     #--------------------------------------------------------------------------
@@ -110,7 +110,8 @@ RUN \
     mkdir gcc && \
     pushd gcc && \
         curl -s https://gist.githubusercontent.com/rosecompiler/cfafc452a2fdc1446968/raw/86087252c73d07b7a326a9a5c77cdad0acbb5736/install-gcc.sh | \
-            bash /dev/stdin ${GCC_VERSION}
+            bash /dev/stdin ${GCC_VERSION} && \
+    popd
 
 RUN \
     source gcc/${GCC_VERSION}/setup.sh && \
@@ -126,7 +127,7 @@ RUN \
 # Remove installation workspaces for dependencies
 #--------------------------------------------------------------------------
 RUN \
-    find ${DESTDIR} -maxdepth 7 -type d -name '*workspace*' | xargs rm -rf
+    find ${DEPS_DESTDIR} -maxdepth 7 -type d -name '*workspace*' | xargs rm -rf
 
 #----------------------------------------------------------
 # Environment Setup
