@@ -62,7 +62,7 @@ cd "${ROSE_BUILD}"
     --with-boost-libdir=/usr/lib/x86_64-linux-gnu \
     --disable-boost-version-check \
     --enable-edg_version=5.0     \
-    --enable-languages=c,c++,binaries || (cat config.log && exit 1)
+    --enable-languages=c,c++ || (cat config.log && exit 1)
  
 make -j${PARALLELISM} install-core || exit 1
 make -j${PARALLELISM} install -C tools/ || exit 1
