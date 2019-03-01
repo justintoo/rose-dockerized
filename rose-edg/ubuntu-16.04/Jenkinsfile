@@ -1,10 +1,11 @@
 import java.text.SimpleDateFormat
 
 node {
-    def rose
+    def rose_edg
 
     def dateFormat = new SimpleDateFormat("yyyy-MM-dd")
     def todaysDate = new Date()
+    def roseVersion = sh ( script: 'curl https://raw.githubusercontent.com/rose-compiler/rose-develop/master/ROSE_VERSION', returnStdout: true).trim()
 
     println()
 
@@ -18,14 +19,12 @@ node {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
 
-        dir('rose-master') {
-            sh 'rm -rf ubuntu-16.04/EDG/'
-
+        dir('rose-edg') {
             // Runs as root in Jenkins docker container
+            sh 'rm -rf ubuntu-16.04/EDG/'
             sh 'GIT_SSH_COMMAND="ssh -i /var/jenkins_home/bitbucket/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone --depth 1 git@bitbucket.org:rose-compiler/edg.git ubuntu-16.04/EDG'
 
-            rose = docker.build("rosecompiler/rose", "--no-cache ubuntu-16.04")
-
+            rose_edg = docker.build("rosecompiler/rose-edg", "--no-cache ubuntu-16.04")
             sh 'rm -rf ubuntu-16.04/EDG/'
         }
     }
@@ -36,15 +35,25 @@ node {
         sh 'echo "Tests passed"'
     }
 
+    stage('Upload EDG Binary') {
+        customImage.inside('-v $WORKSPACE:/output -u root') {
+            sh """
+            ls /root/Downloads
+            cp /root/Downloads/* /output
+            """ 
+        }
+        archiveArtifacts artifacts: '*.tar.gz'
+    }
+
     stage('Push image') {
         /* Finally, we'll push the image with two tags:
          * First, the incremental build number from Jenkins
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
         docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            //rose.push("ubuntu-16.04-${env.BUILD_NUMBER}")
-            //rose.push("ubuntu-16.04-" + dateFormat.format(todaysDate))
-            rose.push("ubuntu-16.04-latest")
+            //rose_edg.push("ubuntu-16.04-${env.BUILD_NUMBER}")
+            //rose_edg.push("ubuntu-16.04-" + dateFormat.format(todaysDate))
+            rose_edg.push("ubuntu-16.04-${roseVersion}")
         }
     }
 }

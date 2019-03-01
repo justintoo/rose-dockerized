@@ -9,7 +9,7 @@ WORKDIR /root
 # ROSE
 #----------------------------------------------------------
 COPY EDG /root/EDG
-COPY install-rose.sh .
-RUN chmod +x ./install-rose.sh
-RUN ./install-rose.sh
+COPY install-rose-edg.sh .
+RUN chmod +x ./install-rose-edg.sh
+RUN ./install-rose-edg.sh
 

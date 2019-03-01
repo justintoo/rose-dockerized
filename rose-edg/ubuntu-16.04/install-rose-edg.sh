@@ -1,5 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash -ex
+#
+# Generate EDG binary tarball and save to /root/Downloads/ directory.
+#
 
+: ${WORKSPACE:="$(pwd)"}
+: ${EDG_SOURCE:="/root/EDG"}
+: ${EDG_DESTDIR:="/root/Downloads"}
 : ${PARALLELISM:=$(cat /proc/cpuinfo | grep processor | wc -l)}
 : ${ROSE_VERSION:=$(curl "https://raw.githubusercontent.com/rose-compiler/rose-develop/master/ROSE_VERSION")}
 : ${ROSE_DESTDIR:=$HOME/opt/rose}
@@ -8,8 +14,6 @@
 : ${ROSE_WORKSPACE:=${ROSE_PREFIX}/workspace}
 : ${ROSE_SOURCE:=${ROSE_WORKSPACE}/rose}
 : ${ROSE_BUILD:=${ROSE_WORKSPACE}/compilation}
-
-: ${EDG_SOURCE:="/root/EDG"}
 
 mkdir -p "${ROSE_WORKSPACE}"
 cd "${ROSE_WORKSPACE}"
@@ -39,19 +43,6 @@ EOF
 
 source setup.sh
 
-cat <<-EOF
-========================================================
-= setup.sh
-========================================================
-$(cat setup.sh)
-echo "BOOST_HOME=$BOOST_HOME"
-echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-EOF
-
-cp setup.sh "${ROSE_HOME}"
-echo "source \"${ROSE_HOME}/setup.sh\"" >> "$HOME/.bashrc"
-source "$HOME/.bashrc"
-
 git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
 cd "${ROSE_SOURCE}"
 
@@ -59,6 +50,8 @@ cp -R "${EDG_SOURCE}" src/frontend/CxxFrontend/
 
 # IMPORTANT: Remove all EDG source code
 rm -rf "${EDG_SOURCE}"
+
+git submodule update
 
 ./build || exit 1
 
@@ -73,29 +66,21 @@ cd "${ROSE_BUILD}"
     --enable-edg_version=5.0     \
     --enable-languages=c,c++ || (cat config.log && exit 1)
  
-make -j${PARALLELISM} install-core || exit 1
-make -j${PARALLELISM} install -C tools/ || exit 1
+make -j${PARALLELISM} binary_edg_tarball || exit 1
 
-cat >> ~/.bash_profile <<-EOF
-source "${ROSE_HOME}/setup.sh" || false
-EOF
+mkdir -p "${EDG_DESTDIR}"
+EDG_BINARY_FILE="$(find "${ROSE_BUILD}" -iname "*roseBinaryEDG-*")"
+cp "${EDG_BINARY_FILE}" "${EDG_DESTDIR}"
  
 cat <<-EOF
 -------------------------------------------------------------------------------
-[SUCCESS] ROSE was successfully installed here:
+[SUCCESS] ROSE EDG was successfully installed here:
 [SUCCESS] 
-[SUCCESS]     ${ROSE_HOME}
-[SUCCESS] 
-[SUCCESS] Use this command to add ROSE to your shell environment:
-[SUCCESS] 
-[SUCCESS]     $ source "${ROSE_HOME}/setup.sh"
-[SUCCESS] 
-[SUCCESS] Note: This command was added to your ~/.bash_profile.
+[SUCCESS]     ${EDG_DESTDIR}
 -------------------------------------------------------------------------------
 EOF
 
-# TODO:
-: $HOME/opt/bin/aws s3 cp "/path/to/rose-installer" s3://rose-binaries.rosecompiler.org || true
+: $HOME/opt/bin/aws s3 cp "${EDG_BINARY_FILE}" s3://edg-binaries.rosecompiler.org || true
 
 # IMPORTANT: Cleanup build workspace to reduce bloat and EDG source code
 rm -rf "${ROSE_WORKSPACE}"
