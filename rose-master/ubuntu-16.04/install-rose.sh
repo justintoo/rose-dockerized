@@ -78,8 +78,9 @@ make -j${PARALLELISM} install-core || exit 1
 make -j${PARALLELISM} install -C tools/ || exit 1
 make -j${PARALLELISM} install -C tools/checkFortranInterfaces || exit 1
 make -j${PARALLELISM} install -C tools/classMemberVariablesInLambdas || exit 1
-make -j${PARALLELISM} install -C tools/fortranTranslation || exit 1
 make -j${PARALLELISM} install -C tools/globalVariablesInLambdas || exit 1
+# TOO1 (3/11/19): Must enable Forttran
+#make -j${PARALLELISM} install -C tools/fortranTranslation || exit 1
 
 cat >> ~/.bash_profile <<-EOF
 source "${ROSE_HOME}/setup.sh" || false
