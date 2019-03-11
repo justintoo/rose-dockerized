@@ -52,7 +52,8 @@ cp setup.sh "${ROSE_HOME}"
 echo "source \"${ROSE_HOME}/setup.sh\"" >> "$HOME/.bashrc"
 source "$HOME/.bashrc"
 
-git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
+#git clone --depth 1 https://github.com/rose-compiler/rose-develop.git "${ROSE_SOURCE}"
+git clone --depth 1 --branch ROSE-1726-lbl-ubuntu-tools https://github.com/justintoo/rose-develop.git "${ROSE_SOURCE}"
 cd "${ROSE_SOURCE}"
 
 cp -R "${EDG_SOURCE}" src/frontend/CxxFrontend/
@@ -75,6 +76,10 @@ cd "${ROSE_BUILD}"
  
 make -j${PARALLELISM} install-core || exit 1
 make -j${PARALLELISM} install -C tools/ || exit 1
+make -j${PARALLELISM} install -C tools/checkFortranInterfaces || exit 1
+make -j${PARALLELISM} install -C tools/classMemberVariablesInLambdas || exit 1
+make -j${PARALLELISM} install -C tools/fortranTranslation || exit 1
+make -j${PARALLELISM} install -C tools/globalVariablesInLambdas || exit 1
 
 cat >> ~/.bash_profile <<-EOF
 source "${ROSE_HOME}/setup.sh" || false
