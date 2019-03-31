@@ -1,0 +1,1304 @@
+#!/usr/bin/perl
+$Interpreter ||= "/usr/bin/perl";
+#-------------------------------------------------------------------------------
+#
+#   Copyright 1985-99,2000-19 James Frederick Reus
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+#-------------------------------------------------------------------------------
+
+# MyUniqueFileId: 05bfd522-45a2-4dfa-ca27-420e6c630546
+
+$mkinstaller_ver_major = "2";
+$mkinstaller_ver_minor = "4";
+$mkinstaller_ver_build = "3";
+$mkinstaller_ver_patch = "";
+$mkinstaller_ver_name  = "2.4.3";
+$mkinstaller_ver_time  = "12Feb2019 15:39:19z";
+$mkinstaller_ver_id    = "@(#)mkinstaller 2.4.3 - 12Feb2019 15:39:19z";
+
+@defaultCopyrightOwners
+  = ( "Copyright 1985-99,2000-19 James Frederick Reus\n"
+    );
+
+@defaultCopyrightStatement
+  = ( "Licensed under the Apache License, Version 2.0 (the \"License\");\n"
+    , "you may not use this file except in compliance with the License.\n"
+    , "You may obtain a copy of the License at\n"
+    , "\n"
+    , "    http://www.apache.org/licenses/LICENSE-2.0\n"
+    , "\n"
+    , "Unless required by applicable law or agreed to in writing, software\n"
+    , "distributed under the License is distributed on an \"AS IS\" BASIS,\n"
+    , "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n"
+    , "See the License for the specific language governing permissions and\n"
+    , "limitations under the License.\n"
+    );
+
+# MyUniqueFileId: 84e1ff4e-3287-40b4-a64a-750cbf5a3643
+$rawCommand = $0;
+$theCommand = $rawCommand;
+$theCommand =~ tr/\\/\//;
+$foundInDir = "";
+
+#-------------------------------------------------------------------------------
+#
+#  The DEBUG_rose_post_install (or DEBUG) enviroment variable is used to control the
+#  production of debugging output.
+#
+#     not set
+#
+#         Don't produce debugging ouput.
+#
+#     0
+#
+#         Don't produce debugging ouput.
+#
+#     non-zero integer
+#
+#         Send debugging output to <stderr>
+#
+#     pathname
+#
+#         Send debugging output to the given pathname.
+#
+#-------------------------------------------------------------------------------
+
+$debugging          = 0;
+$dbgOutToPathname   = "";
+
+my $valueOfDebugVar = "";
+if ( exists $ENV{"DEBUG_rose_post_install"}) {
+   $valueOfDebugVar = $ENV{"DEBUG_rose_post_install"};
+}
+elsif ( exists $ENV{"DEBUG"}) {
+   $valueOfDebugVar = $ENV{"DEBUG"};
+}
+else {
+   $valueOfDebugVar = "";
+}
+if ($valueOfDebugVar ne "") {
+   my $pathname  = $valueOfDebugVar;
+   if ($pathname eq "") {
+      $debugging        = 0;
+      $dbgOutToPathname = "";
+   }
+   elsif ($pathname =~ /^\s*0\s*$/) {
+      $debugging        = 0;
+      $dbgOutToPathname = "";
+   }
+   elsif ($pathname =~ /^\s*(\d+)\s*$/) {
+      $debugging        = 1;
+      *DBGOUT           = STDERR;
+      $dbgOutToPathname = "";
+   }
+   else {
+      if ( ! open(DBGOUT,"> $pathname")) {
+         print STDERR "rose_post_install: can't send debugging output to \"$pathname\"\n"; # can't send to DBGOUT
+         exit 1;
+      }
+      $debugging        = 1;
+      $dbgOutToPathname = $pathname;
+   }
+}
+
+{
+   #----------------------------------------------------------------------------
+   #
+   #  Initialization...
+   #
+   #----------------------------------------------------------------------------
+
+   print "rose-post-install: initialization...\n" if $debugging;
+   my $backupPathname = "";
+   my $dir_include    = "";
+   my $dir_lib        = "";
+   my $dir_prefix     = "";
+   my $here           = getWorkingDirectory();
+   my $inputPathname  = "";
+   my $outputPathname = "";
+   my $prefix_include = "";
+   my $prefix_lib     = "";
+   my $qdir_include   = "";
+   my $qdir_lib       = "";
+   my $qdir_prefix    = "";
+   my $verbosityLevel = 0;
+   print "rose-post-install: ...done\n" if $debugging;
+
+   #----------------------------------------------------------------------------
+   #
+   #  Process command line...
+   #
+   #  First take stuff from OPTS_rose_post_install
+   #  environment variable and put it at the
+   #  start of the command line...
+   #
+   #----------------------------------------------------------------------------
+
+   if ( exists $ENV{'OPTS_rose_post_install'} ) {
+      print "rose-post-install: deal with OPTS_rose_post_install...\n" if $debugging;
+      my $tmp = $ENV{'OPTS_rose_post_install'};
+      if ($tmp ne "") {
+         my @tmp = split /\s/, $tmp;
+         my $i;
+         for ($i=$#tmp; 0<=$i; $i-=1) {
+            unshift @ARGV, $tmp[$i];
+         }
+      }
+      print "rose-post-install: ...done\n" if $debugging;
+   }
+
+   #---------------------------------------
+   #
+   #  Then step through the command line...
+   #
+   #---------------------------------------
+
+   print "rose-post-install: process command line...\n" if $debugging;
+   {
+      my $i;
+      for ($i=0; $i<=$#ARGV; $i+=1) {
+         my $opt = $ARGV[$i];
+         print "rose-post-install: ...found \"$opt\"\n" if $debugging;
+         $_      = $opt;
+         parseArgs: {
+                       #---------------------------------------
+                       #
+                       #  Non-standard options...
+                       #
+                       #---------------------------------------
+
+                       /^--prefix-include=?$/
+
+                          && do {
+                             print STDERR "rose-post-install: missing or zero-length argument to $opt option\n";
+                             exit 1;
+                          };
+
+                       /^--prefix-include=(.+)$/
+
+                          && do {
+                             if ($prefix_include ne "") {
+                                print STDERR "rose-post-install: unexpected $opt\n";
+                                exit 1;
+                             }
+                             $prefix_include = $1;
+                             print "rose-post-install:    headers under \"$prefix_include\"\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--prefix-lib=?$/
+
+                          && do {
+                             print STDERR "rose-post-install: missing or zero-length argument to $opt option\n";
+                             exit 1;
+                          };
+
+                       /^--prefix-lib=(.+)$/
+
+                          && do {
+                             if ($prefix_lib ne "") {
+                                print STDERR "rose-post-install: unexpected $opt\n";
+                                exit 1;
+                             }
+                             $prefix_lib     = $1;
+                             print "rose-post-install:    libraries under \"$prefix_lib\"\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--prefix-[a-zA-Z0-9_]+=(.+)$/
+
+                          && do {
+                             my $ignored     = $1;
+                             print "rose-post-install:    ignoring \"$ignored\"\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--prefix=?$/
+
+                          && do {
+                             print STDERR "rose-post-install: missing or zero-length argument to $opt option\n";
+                             exit 1;
+                          };
+
+                       /^--prefix=(.+)$/
+
+                          && do {
+                             if (($prefix_include ne "") || ($prefix_lib ne "")) {
+                                print STDERR "rose-post-install: unexpected $opt\n";
+                                exit 1;
+                             }
+                             my $collective  = $1;
+                             $prefix_include = $collective."/include";
+                             $prefix_lib     = $collective."/lib";
+                             print "rose-post-install:    headers under \"$prefix_include\"\n" if $debugging;
+                             print "rose-post-install:    libraries under \"$prefix_lib\"\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       #---------------------------------------
+                       #
+                       #  "Semi-standard" options...
+                       #
+                       #---------------------------------------
+
+                       /^((-d)|(--debug))$/
+
+                          && do {
+                             if ( ! $debugging) {
+                                $debugging = 1;
+                                print "rose-post-install: $opt supplied, debugging enabled\n" if $debugging;
+                             }
+                             last parseArgs;
+                          };
+
+                       /^-v$/
+
+                          && do {
+                             $verbosityLevel += 1;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^-v0$/
+
+                          && do {
+                             $verbosityLevel  = 0;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^-v([1-9][0-9]*)$/
+
+                          && do {
+                             $verbosityLevel += $1;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--verbose$/
+
+                          && do {
+                             $verbosityLevel += 1;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--verbose0$/
+
+                          && do {
+                             $verbosityLevel  = 0;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       /^--verbose([1-9][0-9]*)$/
+
+                          && do {
+                             $verbosityLevel += $1;
+                             print "rose-post-install:    ...level is now $verbosityLevel\n" if $debugging;
+                             last parseArgs;
+                          };
+
+                       #---------------------------------------
+                       #
+                       #  Unknown options...
+                       #
+                       #---------------------------------------
+
+                       /^--(.*)$/
+
+                          && do {
+                             print STDERR "rose-post-install: unknown option \"".$opt."\"\n";
+                             my $optName = $1;
+                             if (length($optName) == 1) {
+                                print STDERR "rose-post-install: ...did you mean -".$optName." or \"./".$opt."\"\n";
+                             }
+                             elsif (1 <= length($opt)) {
+                                print STDERR "rose-post-install: ...did you mean \"./".$opt."\"\n";
+                             }
+                             exit 1;
+                          };
+
+                       /^-(.*)$/
+
+                          && do {
+                             print STDERR "rose-post-install: unknown option \"".$opt."\"\n";
+                             my $optName = $1;
+                             if (2 <= length($optName)) {
+                                print STDERR "rose-post-install: ...did you mean --".$optName." or \"./".$opt."\"\n";
+                             }
+                             elsif (1 <= length($opt)) {
+                                print STDERR "rose-post-install: ...did you mean \"./".$opt."\"\n";
+                             }
+                             exit 1;
+                          };
+
+                       #---------------------------------------
+                       #
+                       #  Parameters...
+                       #
+                       #---------------------------------------
+
+                       /^.+$/
+
+                          && do {
+                             print STDERR "rose-post-install: unexpected parameter \"".$opt."\"\n";
+                             exit 1;
+                          };
+
+                       /^$/
+
+                          && do {
+                             print STDERR "rose-post-install: zero-length parameter\n";
+                             exit 1;
+                          };
+                    }
+      }
+   }
+   print "rose-post-install: ...done\n" if $debugging;
+
+   #----------------------------------------------------------------------------
+   #
+   #  Consider what was given...
+   #
+   #     A prefix for the include directory and for the lib directory must
+   #     be supplied. Now strip any enclosing quotes. Establish the names of
+   #     both the include and lib directories.
+   #
+   #----------------------------------------------------------------------------
+
+   my $ok = 1;
+   if ($prefix_include eq "") {
+      print STDERR "rose-post-install: error -- prefix for headers was not specified\n";
+      $ok = 0;
+   }
+   if ($prefix_include eq "") {
+      print STDERR "rose-post-install: error -- prefix for libraries was not specified\n";
+      $ok = 0;
+   }
+   if ( ! $ok) {
+      exit 1;
+   }
+   if ($prefix_include =~ /^"(.*)"$/) {
+      $prefix_include = $1;
+      print "rose-post-install: stripped double-quotes from include prefix\n" if $debugging;
+   }
+   elsif ($prefix_include =~ /^'(.*)'$/) {
+      $prefix_include = $1;
+      print "rose-post-install: stripped single-quotes from include prefix\n" if $debugging;
+   }
+   if ($prefix_lib =~ /^"(.*)"$/) {
+      $prefix_lib     = $1;
+      print "rose-post-install: stripped double-quotes from lib prefix\n" if $debugging;
+   }
+   elsif ($prefix_lib =~ /^'(.*)'$/) {
+      $prefix_lib     = $1;
+      print "rose-post-install: stripped single-quotes from lib prefix\n" if $debugging;
+   }
+   if ($prefix_include ne $prefix_lib) {
+      print STDERR "rose-post-install: warning -- the prefix for headers(=\"$prefix_include\")\n";
+      print STDERR "rose-post-install: ...is not the same as prefix for libraries(=\"$prefix_lib\")\n";
+   }
+   $prefix            = $prefix_lib;
+
+   $dir_include       = $prefix_include."/include";
+   if ($dir_include =~ /\s/) {
+      $qdir_include   = "\"".$dir_include."\"";
+   }
+   else {
+      $qdir_include   = $dir_include;
+   }
+   $dir_lib           = $prefix_lib."/lib";
+   if ($dir_lib =~ /\s/) {
+      $qdir_lib       = "\"".$dir_lib."\"";
+   }
+   else {
+      $qdir_lib       = $dir_lib;
+   }
+   $dir_prefix        = $prefix;
+   if ($dir_prefix =~ /\s/) {
+      $qdir_prefix    = "\"".$dir_prefix."\"";
+   }
+   else {
+      $qdir_prefix    = $dir_prefix;
+   }
+
+   #----------------------------------------------------------------------------
+   #
+   #  Note that rose-post-install shares version info with mkinstaller
+   #
+   #----------------------------------------------------------------------------
+
+   print STDERR "rose-post-install: $mkinstaller_ver_name rev. $mkinstaller_ver_time\n" if (1 <= $verbosityLevel);
+
+   #----------------------------------------------------------------------------
+   #
+   #  Locate the rose-config.cfg file (to edit)...
+   #
+   #----------------------------------------------------------------------------
+
+   print "rose-post-install: locate \"rose-config.cfg\"...\n" if $debugging;
+   {
+      my $lookFor = $dir_lib."/rose-config.cfg";
+      print STDERR "rose-post-install: find \"rose-config.cfg\"\n" if (1 <= $verbosityLevel);
+      if ( -f $lookFor) {
+         $inputPathname  = $lookFor;
+         $outputPathname = $lookFor.".new";
+         $backupPathname = $inputPathname.".bak";
+         print "rose-post-install: ...found \"$inputPathname\"\n" if $debugging;
+         print STDERR "rose-post-install: ...found \"$inputPathname\"\n" if (1 <= $verbosityLevel);
+      }
+      else {
+         print STDERR "rose-post-install: can't find \"$lookFor\"\n";
+         exit 1;
+      }
+   }
+   print "rose-post-install: ...done\n" if $debugging;
+
+   #----------------------------------------------------------------------------
+   #
+   #  Read the rose-config.cfg file translating to rose-config.cfg.new
+   #
+   #----------------------------------------------------------------------------
+
+   print "rose-post-install: scan \"$inputPathname\"...\n" if $debugging;
+   {
+      print STDERR "rose-post-install: read from \"$inputPathname\"\n" if (1 <= $verbosityLevel);
+      if ( ! open(INPUT,"< $inputPathname")) {
+         print STDERR "rose-post-install: can't read \"$inputPathname\"\n";
+         exit 1;
+      }
+      print STDERR "rose-post-install: ...write to \"$outputPathname\"\n" if (1 <= $verbosityLevel);
+      if ( ! open(OUTPUT,"> $outputPathname")) {
+         print STDERR "rose-post-install: can't create/write \"$outputPathname\"\n";
+         close(INPUT);
+         exit 1;
+      }
+      my $lineNumber = 0;
+      while (<INPUT>) {
+         chomp;
+         my $theLineOfText = $_;
+         $lineNumber    += 1;
+         print "rose-post-install:    $lineNumber: [$theLineOfText]\n" if $debugging;
+         if ($theLineOfText =~ /^(\s*cc\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"cc\" line,       L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            print "rose-post-install:    ...output[$left=$right]\n" if $debugging;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*cxx\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"cxx\" line,      L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            print "rose-post-install:    ...output[$left=$right]\n" if $debugging;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*cppflags\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"cppflags\" line, L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            $right =~ s/-I"[^"]+"/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/-I\S+/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/-I$qdir_include/g;
+            print "rose-post-install:    ...output[$left=$right]\n" if $debugging;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*cflags\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"cflags\" line,   L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            $right =~ s/-I"[^"]+"/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/-I\S+/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/-I$qdir_include/g;
+            $right =~ s/-L"[^"]+"/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/-L\S+/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/-L$qdir_lib/g;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*cxxflags\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"cxxflags\" line, L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            $right =~ s/-I"[^"]+"/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/-I\S+/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/g;
+            $right =~ s/{I550cf20a-ae0b-4167-c6c0-3b60c8e51b25}/-I$qdir_include/g;
+            $right =~ s/-L"[^"]+"/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/-L\S+/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/-L$qdir_lib/g;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*ldflags\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"ldflags\" line,  L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            $right =~ s/-L"[^"]+"/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/-L\S+/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/g;
+            $right =~ s/{L4ea9950f-9f7d-4af4-dbde-3c5463f1caba}/-L$qdir_lib/g;
+            print "rose-post-install:    ...output[$left=$right]\n" if $debugging;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*libdirs\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"libdirs\" line,  L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            my $right = " ".$qdir_lib;
+            print OUTPUT $left."=".$right."\n";
+         }
+         elsif ($theLineOfText =~ /^(\s*prefix\s*)=(.*)$/) {
+            my $left  = $1;
+            my $right = $2;
+            print "rose-post-install:    ...a \"prefix\" line,   L = [$left]\n" if $debugging;
+            print "rose-post-install:                          R = [$right]\n" if $debugging;
+            $right    = " ".$qdir_prefix;
+            print OUTPUT $left."=".$right."\n";
+         }
+         else {
+            print "rose-post-install:    ...some other line\n" if $debugging;
+            print "rose-post-install:    ...output[$theLineOfText]\n" if $debugging;
+            print OUTPUT $theLineOfText."\n";
+         }
+      }
+      close(OUTPUT);
+      close(INPUT);
+      print STDERR "rose-post-install: ...done\n" if (1 <= $verbosityLevel);
+   }
+   print "rose-post-install: ...done\n" if $debugging;
+
+   #----------------------------------------------------------------------------
+   #
+   #  Rename the input rose-config.cfg file as rose-config.cfg.bak then rename
+   #  the output rose-config.cfg.new file as rose-config.cfg
+   #
+   #----------------------------------------------------------------------------
+
+   print "rose-post-install: rename files...\n" if $debugging;
+   {
+      if ( -f $inputPathname) {
+         print "rose-post-install: ...found \"$inputPathname\"\n" if $debugging;
+         if ( -f $outputPathname) {
+            print "rose-post-install:      and \"$outputPathname\"\n" if $debugging;
+            #---------------------------------------
+            #
+            #  First eliminate existing rose-config.cfg.bak
+            #  file...
+            #
+            #---------------------------------------
+            print "rose-post-install: ...use \"$backupPathname\" for a backup\n" if $debugging;
+            if ( -f $backupPathname) {
+               print STDERR "rose-post-install: delete existing \"$backupPathname\"\n" if (1 <= $verbosityLevel);
+               print "rose-post-install:    eliminate existing \"$backupPathname\" file\n" if $debugging;
+               if ( ! unlink($backupPathname)) {
+                  print STDERR "rose-post-install: error -- can't delete existing \"$backupPathname\"\n";
+                  exit 1;
+               }
+               if ( -f $backupPathname) {
+                  print STDERR "rose-post-install: error -- did't delete existing \"$backupPathname\"\n";
+                  exit 1;
+               }
+               print "rose-post-install:    ...done\n" if $debugging;
+               print "rose-post-install: ...done\n" if (2 <= $verbosityLevel);
+            }
+            #---------------------------------------
+            #
+            #  Then rename given rose-config.cfg file
+            #  as rose-config.cfg.bak (preserving it)...
+            #
+            #---------------------------------------
+            print "rose-post-install: ...rename original \"$inputPathname\" as \"$backupPathname\"\n" if $debugging;
+            {
+               print "rose-post-install: rename \"$inputPathname\"\n" if (1 <= $verbosityLevel);
+               print "rose-post-install:     as \"$backupPathname\"\n" if (1 <= $verbosityLevel);
+               if ( ! rename($inputPathname,$backupPathname)) {
+                  print STDERR "rose-post-install: error -- can't rename \"$inputPathname\" as \"$backupPathname\"\n";
+                  exit 1;
+               }
+               if ( -f $inputPathname) {
+                  print STDERR "rose-post-install: error -- did't rename \"$inputPathname\" as \"$backupPathname\"\n";
+                  print STDERR "rose-post-install: ...\"$inputPathname\" is still there\n";
+                  exit 1;
+               }
+               if ( ! -f $backupPathname) {
+                  print STDERR "rose-post-install: error -- did't rename \"$inputPathname\" as \"$backupPathname\"\n";
+                  print STDERR "rose-post-install: ...\"$backupPathname\" isn't there\n";
+                  exit 1;
+               }
+               print "rose-post-install: ...done\n" if (2 <= $verbosityLevel);
+            }
+            print "rose-post-install:    done\n" if $debugging;
+            #---------------------------------------
+            #
+            #  Then rename generated rose-config.cfg.new
+            #  file as rose-config.cfg (preserving it)...
+            #
+            #---------------------------------------
+            print "rose-post-install: ...rename new \"$outputPathname\" as \"$inputPathname\"\n" if $debugging;
+            {
+               print "rose-post-install: rename \"$outputPathname\"\n" if (1 <= $verbosityLevel);
+               print "rose-post-install:     as \"$inputPathname\"\n" if (1 <= $verbosityLevel);
+               if ( ! rename($outputPathname,$inputPathname)) {
+                  print STDERR "rose-post-install: error -- can't rename \"$outputPathname\" as \"$inputPathname\"\n";
+                  exit 1;
+               }
+               if ( -f $outputPathname) {
+                  print STDERR "rose-post-install: error -- did't rename \"$outputPathname\" as \"$inputPathname\"\n";
+                  print STDERR "rose-post-install: ...\"$outputPathname\" is still there\n";
+                  exit 1;
+               }
+               if ( ! -f $inputPathname) {
+                  print STDERR "rose-post-install: error -- did't rename \"$outputPathname\" as \"$inputPathname\"\n";
+                  print STDERR "rose-post-install: ...\"$inputPathname\" isn't there\n";
+                  exit 1;
+               }
+               print "rose-post-install: ...done\n" if (2 <= $verbosityLevel);
+            }
+            print "rose-post-install:    done\n" if $debugging;
+         }
+      }
+   }
+   if ( -f $inputPathname) {
+      print STDERR "rose-post-install: found: \"$inputPathname\"\n" if (1 <= $verbosityLevel);
+   }
+   else {
+      print STDERR "rose-post-install: can't find \"$inputPathname\"\n";
+   }
+   if ( -f $backupPathname) {
+      print STDERR "rose-post-install:    and \"$backupPathname\"\n" if (1 <= $verbosityLevel);
+   }
+   else {
+      print STDERR "rose-post-install: can't find \"$backupPathname\"\n";
+   }
+   print "rose-post-install: ...done\n" if $debugging;
+   exit 0;
+}
+# MyUniqueFileId: c16cf2c9-02f4-48a7-bf6f-6d74697af801
+#-------------------------------------------------------------------------------
+#
+#  Basename from pathname.
+#
+#  This function is used to extract the basename (the final component) from a
+#  given pathname. Note that this kind of operation is generally available in
+#  the File module.
+#
+#  This function uses: fixpath()
+#
+#  see: totebag/src/perl-lib/basename.psub
+#
+#  Dated: 27Jun2016
+#
+#-------------------------------------------------------------------------------
+
+sub basename {
+   my $pathname = shift(@_);
+   $_           = fixpath($pathname);
+   parse: {
+             /^(.+)[\/\\]([^\/\\]*)$/
+
+                && do {
+                   return $2;
+                };
+
+             /^[\/\\]([^\/\\]*)$/
+
+                && do {
+                   return $1;
+                };
+
+             /^([^\/\\]*)$/
+
+                && do {
+                   return $1;
+                };
+
+          }
+}
+
+# MyUniqueFileId: c58e95af-7811-46b9-ba94-c63e6b2ed7ee
+#-------------------------------------------------------------------------------
+#
+#  Decide where to place tempfiles.
+#
+#     0) Try the pathname in in the environment variable that
+#        was passed as the single parameter.
+#     1) Try the pathname in TMPDIR
+#     2) Try the pathname in TMP
+#     3) Try the pathname in TEMP
+#     4) Try ~/tmp (tmp under home directory)
+#     5) Try C:<usrProf>\AppData\Local\temp directory
+#     6) Try /tmp
+#     7) Try /var/tmp
+#     8) Try C:\Temp
+#     9) Try C:\Windows\Temp
+#    10) Try .
+#
+#  Note that 5, 8, and 9 are only applicable on Windows-like hosts.
+#
+#  This function uses: findHomeDirectory(),
+#                      getOSclass()
+#
+#  see: totebag/src/perl-lib/findTempDir.psub
+#
+#  Dated: 07Jul2017
+#
+#-------------------------------------------------------------------------------
+
+sub findTempDir {
+   my $envVarName = shift;
+   my $tmpdir     = "";
+
+   #---------------------------------------
+   #
+   #  First try the given environment variable...
+   #
+   if ($tmpdir eq "") {
+      if ($envVarName ne "") {
+         if ( exists $ENV{$envVarName}) {
+            my $trydir = $ENV{$envVarName};
+            if ( -d $trydir) {
+               if ( -w $trydir) {
+                  $tmpdir = $trydir;
+               }
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...then try TMPDIR environment variable...
+   #
+   if ($tmpdir eq "") {
+      if ( exists $ENV{'TMPDIR'}) {
+         my $trydir = $ENV{'TMPDIR'};
+         if ( -d $trydir) {
+            if ( -w $trydir) {
+               $tmpdir = $trydir;
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...then try TMP environment variable...
+   #
+   if ($tmpdir eq "") {
+      if ( exists $ENV{'TMP'}) {
+         my $trydir = $ENV{'TMP'};
+         if ( -d $trydir) {
+            if ( -w $trydir) {
+               $tmpdir = $trydir;
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...then try TEMP environment variable...
+   #
+   if ($tmpdir eq "") {
+      if ( exists $ENV{'TEMP'}) {
+         my $trydir = $ENV{'TEMP'};
+         if ( -d $trydir) {
+            if ( -w $trydir) {
+               $tmpdir = $trydir;
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...then try tmp subdirectory of the
+   #     user's home directory...
+   #
+   if ($tmpdir eq "") {
+      #---------------------------------------
+      #
+      #  Find the user's home directory
+      #
+      my $theHomeDir = findHomeDirectory();
+      if ($theHomeDir ne "") {
+         if ( -d $theHomeDir) {
+            my $trydir = $theHomeDir."/tmp";
+            if ( -d $trydir) {
+               if ( -w $trydir) {
+                  $tmpdir = $trydir;
+               }
+            }
+         }
+      }
+   }
+
+   if ($tmpdir eq "") {
+      if (getOSclass() eq "Windows-like") {
+
+         #---------------------------------
+         #
+         #  ...then try "C:<usrProf>\AppData\Local\Temp"
+         #     directory...
+         #
+         if ( exists $ENV{'USERPROFILE'} ) {
+            my $usrProf   = $ENV{'USERPROFILE'};
+            if ($usrProf ne "") {
+               my $trydir = "$usrProf\\AppData\\Local\\Temp";
+               if ( -d $trydir) {
+                  if ( -w $trydir) {
+                     $tmpdir = $trydir;
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...then try "/tmp" directory...
+   #
+   if ($tmpdir eq "") {
+      my $trydir = "/tmp";
+      if ( -d $trydir) {
+         if ( -w $trydir) {
+            $tmpdir = $trydir;
+         }
+      }
+   }
+
+   if ($tmpdir eq "") {
+      if (getOSclass() eq "Windows-like") {
+
+         #---------------------------------
+         #
+         #  ...then try "C:\Temp" directory...
+         #
+         if ($tmpdir eq "") {
+            my $trydir = "C:\\Temp";
+            if ( -d $trydir) {
+               if ( -w $trydir) {
+                  $tmpdir = $trydir;
+               }
+            }
+         }
+
+         #---------------------------------
+         #
+         #  ...then try "C:\Windows\Temp" directory...
+         #
+         if ($tmpdir eq "") {
+            my $trydir = "C:\\Windows\\Temp";
+            if ( -d $trydir) {
+               if ( -w $trydir) {
+                  $tmpdir = $trydir;
+               }
+            }
+         }
+      }
+   }
+
+   #---------------------------------------
+   #
+   #  ...finally try "." directory...
+   #
+   if ($tmpdir eq "") {
+      my $trydir = ".";
+      if ( -w $trydir) {
+         $tmpdir = $trydir;
+      }
+   }
+
+   return $tmpdir;
+}
+
+# MyUniqueFileId: 2e9bd476-985f-408b-feb6-4fdb9639eed5
+#-------------------------------------------------------------------------------
+#
+#  "Fixing" a pathname. This gets rid of excess dots and such that don't
+#  make any difference but are hard to read. Note that backslashes are
+#  translated into forward slashes in the process.
+#
+#  Note that this function uses: getOSclass()
+#
+#  see: totebag/src/perl-lib/fixpath.psub
+#
+#  Dated: 03Jun2018
+#
+#-------------------------------------------------------------------------------
+
+sub fixpath {
+   my $pathname = shift;
+   my $result   = "";
+   my $drive;
+   my $useslash;
+   #
+   #  Decide on an appropriate pathname component separator (which kind
+   #  of slash to use). Remove and hold on to the drive letter if there
+   #  is one (only on Windows of course).
+   #
+   if (getOSclass() eq "UNIX-like") {
+      $useslash = "/";
+      $drive    = "";
+   }
+   else {
+      $useslash = "\\";
+      if ($pathname =~ /^([a-zA-Z]):([\/\\].*)$/) {
+         $drive    = $1;
+         $pathname = $2;
+      }
+      else {
+         $drive    = "";
+      }
+   }
+   if ($pathname ne "") {
+      if ($pathname eq ".") {
+         #---------------------------------------
+         #
+         #  Trivial "."
+         #
+         $result = ".";
+      }
+      elsif (($pathname eq "/") || ($pathname eq "\\")) {
+         #---------------------------------------
+         #
+         #  Trivial "/"
+         #
+         $result = $pathname;
+      }
+      else {
+         #---------------------------------------
+         #
+         #  If non-trivial first switch backslashes
+         #  to forward slashes...
+         #
+         $pathname =~ s![\\]!/!g;
+         #---------------------------------------
+         #
+         #  Then reduce repeated slashes...
+         #
+         $pathname =~ s![/][/]+!/!g;
+         #---------------------------------------
+         #
+         #  Note if absolute or relative. If absolute
+         #  then toss the leading slash for and
+         #  split the pathname up into components...
+         #
+         #  Note that this is much like that in
+         #  the splitPathname() function.
+         #
+         if ($pathname =~ /^\/(.*)$/) {
+            @components = split(/[\/]+/,$1);
+            $absolute   = 1;
+         }
+         else {
+            @components = split(/[\/]+/,$pathname);
+            $absolute   = 0;
+         }
+         #---------------------------------------
+         #
+         #  Scan for single dots and remove them...
+         #
+         $changed = 1;
+         while ($changed) {
+            $changed = 0;
+            my $j;
+            for ($j=0; $j<=$#components; $j+=1) {
+               if ($components[$j] eq ".") {
+                  splice(@components,$j,1);
+                  $changed = 1;
+               }
+            }
+         }
+         #---------------------------------------
+         #
+         #  Scan for double dots and resolve them...
+         #
+         if (1 <= $#components) {
+            $changed = 1;
+            while ($changed) {
+               $changed = 0;
+               if ($absolute && ($components[0] eq "..")) {
+                  splice(@components,0,1);
+                  $changed = 1;
+               }
+               else {
+                  my $j;
+                  for ($j=1; $j<=$#components; $j+=1) {
+                     if (($components[$j] eq "..") && ($components[$j-1] ne "..")) {
+                        splice(@components,$j-1,2);
+                        $changed = 1;
+                     }
+                  }
+               }
+            }
+         }
+         #---------------------------------------
+         #
+         #  Output what we've found reintroducing
+         #  the leading slash...
+         #
+         if ($#components < 0) {
+            if ($absolute) {
+               $result = "/";
+            }
+            else {
+               $result = ".";
+            }
+         }
+         else {
+            if ($absolute) {
+               $result = "/";
+            }
+            else {
+               $result = "";
+            }
+            my $j;
+            for ($j=0; $j<=$#components; $j+=1) {
+               if (0 < $j) {
+                  $result = $result."/";
+               }
+               $result = $result.$components[$j];
+            }
+         }
+      }
+   }
+   #---------------------------------------
+   #
+   #  Finally re-attach drive letter if
+   #  necessary.
+   #
+   if ($drive ne "") {
+      $result = $drive.":".$result;
+   }
+   return $result;
+}
+
+# MyUniqueFileId: 14888b4a-e281-4663-9f7c-63017caea3ca
+#-------------------------------------------------------------------------------
+#
+#  Get the OS class.
+#
+#  This function is used to determine the OS class of of the host system.
+#
+#  Returns: Any of:
+#
+#              "UNIX-like"
+#              "Windows-like"
+#              "unknown" (failure)
+#
+#  see: totebag/src/perl-lib/getOSclass.psub
+#
+#  Dated: 11May2017
+#
+#-------------------------------------------------------------------------------
+
+sub getOSclass {
+   my $result;
+   #---------------------------------------
+   #
+   #  First try to use a (fast) direct
+   #  method...
+   #
+   my $theOSname = $^O;
+   if ($theOSname =~ /^linux$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^MSWin32$/) {
+      $result = "Windows-like";
+   }
+   elsif ($theOSname =~ /^darwin$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^freebsd$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^solaris$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^aix$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^dec_osf$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^hpux$/) {
+      $result = "UNIX-like";
+   }
+   elsif ($theOSname =~ /^irix$/) {
+      $result = "UNIX-like";
+   }
+   else {
+      #---------------------------------------
+      #
+      #  The hard way...
+      #
+      #  If it isn't directly known, try to
+      #  figure it out the hard way. UNIX-like
+      #  hosts use colons (:) as the separator
+      #  in PATH, but Windows-like hosts use
+      #  semicolons (;).
+      #
+      #  Note: Must check for semicolons first
+      #        (Windows) as Windows may have
+      #        colons too as drive letter
+      #        separators.
+      #
+      if ( defined $ENV{'PATH'} ) {
+         my $tmpPath = $ENV{'PATH'};
+         if ($tmpPath =~ /;/) {
+            $result = "Windows-like";
+         }
+         elsif ($tmpPath =~ /:/) {
+            $result = "UNIX-like";
+         }
+         else {
+            $result = "unknown";
+         }
+      }
+      else {
+         $result = "unknown";
+      }
+   }
+   return $result;
+}
+
+# MyUniqueFileId: c01f73fc-3153-477a-c68b-cbb74bc9526f
+#-------------------------------------------------------------------------------
+#
+#  Get the current working directory.
+#
+#  This function is used to determine the current working directory. Note
+#  that this sort of thing is generally supplied by a standard module but
+#  Perl installations have been sometimes found to lack this (rarely but...).
+#  Note that this does this operation the hard way.
+#
+#  This function uses: findTempDir(),
+#                      getOSclass()
+#
+#  see: totebag/src/perl-lib/getWorkingDirectory.psub
+#
+#  Dated: 22Oct2018
+#
+#-------------------------------------------------------------------------------
+
+sub getWorkingDirectory {
+   my $callerIs = shift;
+   my $exitCode;
+   my $gives;
+   my $tmpdir   = findTempDir("");
+   my $osClass  = getOSclass();
+   if ($osClass eq "UNIX-like") {
+      my $tmpFile = "$tmpdir/pwd-$$.tmp";
+      $gives      = `pwd 2>$tmpFile`;
+      $exitCode   = $? + 0;
+      chomp $gives;
+      unlink $tmpFile if -f $tmpFile;
+   }
+   elsif ($osClass eq "Windows-like") {
+      my $tmpFile = "$tmpdir\\pwd-$$.tmp";
+      $gives      = `cd 2>$tmpFile`;
+      $exitCode   = $? + 0;
+      chomp $gives;
+      unlink $tmpFile if -f $tmpFile;
+   }
+   else {
+      $gives    = "";
+      $exitCode = 1;
+   }
+   if ($exitCode != 0) {
+      print STDERR "$callerIscan't determine current working directory\n";
+      $gives = "";
+   }
+   return $gives;
+}
+
+# MyUniqueFileId: d9ff6301-50cf-45f8-ec93-88caac284048
+#-------------------------------------------------------------------------------
+#
+#  This function is used to join pathname fragments or component to form a
+#  single pathname. The result is normalized.
+#
+#  This function uses: basename(),
+#                      fixpath(),
+#                      getOSclass()
+#
+#  see: totebag/src/perl-lib/joinpath.psub
+#
+#  Dated: 20Oct2017
+#
+#-------------------------------------------------------------------------------
+
+sub joinpath {
+   my @theComponents  = @_;
+   my $Ncomponents    = $#theComponents + 1;
+   my $wasSpecialCase = 0;
+   my $result;
+
+   if ($Ncomponents == 2) {
+      my $Lpart = $theComponents[0];
+      my $Rpart = $theComponents[1];
+      if ($Lpart eq ".") {
+         my $bn = basename($Rpart);
+         if ($Rpart eq $bn) {
+            if (getOSclass() eq "UNIX-like") {
+               $result      = $Lpart."/".$Rpart;     # implementing joinpath()
+            }
+            else {
+               $result      = $Lpart."\\".$Rpart;     # implementing joinpath()
+            }
+            $wasSpecialCase = 1;
+         }
+      }
+   }
+
+   if ( ! $wasSpecialCase) {
+      $result = $theComponents[0];
+      if (0 < $#theComponents) {
+         my $i;
+         for ($i=1; $i<=$#theComponents; ++$i) {
+            my $component = $theComponents[$i];
+            if (getOSclass() eq "UNIX-like") {
+               if ($component =~ "^/") {
+                  $result = $component;
+               }
+               else {
+                  $result = $result."/".$component;  # implementing joinpath()
+               }
+            }
+            else {
+               if ($component =~ '^\\\\') {
+                  $result = $component;
+               }
+               else {
+                  $result = $result."\\".$component;
+               }
+            }
+            $result = fixpath($result);
+         }
+      }
+      else {
+         $result = fixpath($result);
+      }
+   }
+   return $result;
+}
+
